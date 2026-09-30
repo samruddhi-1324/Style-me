@@ -79,7 +79,7 @@ export default function CartPage() {
                   </span>
                 )}
                 {/* Quantity */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginTop: '0.875rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginTop: '0.875rem', flexWrap: 'wrap' }}>
                   <div style={{ display: 'flex', alignItems: 'center', border: '1px solid rgba(0,0,0,0.12)', borderRadius: '50px', overflow: 'hidden' }}>
                     <button
                       onClick={() => updateQuantity(item.id, item.quantity - 1)}
@@ -90,6 +90,17 @@ export default function CartPage() {
                       onClick={() => updateQuantity(item.id, item.quantity + 1)}
                       style={{ width: '34px', height: '34px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem', color: 'var(--color-espresso)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                     >+</button>
+                  </div>
+                  {/* Mobile inline price */}
+                  <div className="cart-price-inline" style={{ display: 'none', alignItems: 'center', gap: '0.5rem', marginLeft: 'auto' }}>
+                    <span style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--color-plum)', fontFamily: "'Cormorant Garamond', serif" }}>
+                      ₹{(item.totalPrice * item.quantity).toLocaleString('en-IN')}
+                    </span>
+                    <button
+                      onClick={() => removeFromCart(item.id)}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', color: 'var(--color-muted)', padding: '0.25rem' }}
+                      title="Remove"
+                    >🗑</button>
                   </div>
                 </div>
               </div>

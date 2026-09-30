@@ -99,6 +99,19 @@ a { text-decoration: none; color: inherit; }
 .badge-coral { background: rgba(198,106,85,0.15); color: var(--color-terracotta); }
 .badge-lilac { background: rgba(217,205,228,0.5); color: var(--color-plum); }
 
+/* ── Tag labels (section eyebrow text) ── */
+.tag {
+  display: inline-block;
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--color-terracotta);
+  background: rgba(198,106,85,0.1);
+  border: 1px solid rgba(198,106,85,0.25);
+  padding: 0.3rem 0.875rem; border-radius: 50px;
+}
+
+/* ── Cat grid (4-col category grid, collapses to 2x2 on mobile) ── */
+.cat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
+
 /* ── Prices ── */
 .price-current { font-size: 1.25rem; font-weight: 700; color: var(--color-plum); }
 .price-original { font-size: 0.875rem; color: var(--color-muted); text-decoration: line-through; }
@@ -205,6 +218,7 @@ a { text-decoration: none; color: inherit; }
   .grid-2 { grid-template-columns: 1fr; }
   .grid-3 { grid-template-columns: 1fr 1fr; }
   .grid-4 { grid-template-columns: 1fr 1fr; }
+  .cat-grid { grid-template-columns: 1fr 1fr !important; }
 
   /* ── Homepage hero ── */
   .hero-grid { grid-template-columns: 1fr !important; text-align: center; }
