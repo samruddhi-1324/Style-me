@@ -1,4 +1,5 @@
 'use client';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useStore } from '@/lib/store';
@@ -28,8 +29,13 @@ const navItems = [
 ];
 
 export default function MobileNav() {
+  const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
   const cartCount = useStore((s) => s.cartCount());
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <nav style={{
@@ -65,7 +71,7 @@ export default function MobileNav() {
             {!item.special && (
               <span style={{ fontSize: '0.6rem', fontWeight: 600, letterSpacing: '0.04em' }}>{item.label}</span>
             )}
-            {item.label === 'Cart' && cartCount > 0 && (
+            {mounted && item.label === 'Cart' && cartCount > 0 && (
               <span style={{
                 position: 'absolute', top: '-2px', right: '-2px',
                 background: 'var(--color-coral)', color: 'white',

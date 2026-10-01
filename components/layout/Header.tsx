@@ -13,6 +13,7 @@ const navLinks = [
 ];
 
 export default function Header() {
+  const [mounted, setMounted] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -21,6 +22,10 @@ export default function Header() {
   const wishlist = useStore((s) => s.wishlist);
   const setCartOpen = useStore((s) => s.setCartOpen);
   const headerRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     gsap.fromTo(headerRef.current, { y: -80, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: 'power3.out', delay: 0.2 });
@@ -187,7 +192,7 @@ export default function Header() {
               <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" strokeLinecap="round" />
               </svg>
-              {wishlist.length > 0 && (
+              {mounted && wishlist.length > 0 && (
                 <span style={{ position: 'absolute', top: 0, right: 0, background: 'var(--color-coral)', color: 'white', width: '15px', height: '15px', borderRadius: '50%', fontSize: '0.58rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   {wishlist.length}
                 </span>
@@ -203,7 +208,7 @@ export default function Header() {
               <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
                 <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 01-8 0" strokeLinecap="round" />
               </svg>
-              {cartCount > 0 && (
+              {mounted && cartCount > 0 && (
                 <span style={{ position: 'absolute', top: 0, right: 0, background: 'var(--color-coral)', color: 'white', width: '15px', height: '15px', borderRadius: '50%', fontSize: '0.58rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   {cartCount}
                 </span>
