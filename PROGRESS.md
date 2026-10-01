@@ -161,21 +161,22 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass; cd "d:\Style me\styl
 - Header mobile drawer, MobileNav bottom bar implemented
 - Shop page mobile filter bottom-sheet implemented
 
-### Session 8 (2026-10-01) — Master Prompt Execution & Service Architecture Upgrade 🚀
-- **Service Layer Abstraction (`lib/services/`)**:
-  - `ProductService`: Async API-ready methods (`getProducts`, `getProductById`, `getFeaturedProducts`, `getRelatedProducts`, `getProductsForFaceShape`)
-  - `AiService`: AI face-shape classification engine (`analyzeFaceShape`), frame fit algorithm (`calculateFrameFitScore`), assistant responder (`generateAssistantResponse`)
-  - `CartService`: Financial calculations (`calculateTotals`), GST tax breakdown, shipping threshold check, coupon validator (`validateCoupon`)
-  - `ReviewService`: Review rating breakdowns (`getReviewSummary`), user review submissions (`submitReview`)
-- **Domain Type Definitions (`lib/types/`)**: Strongly-typed model contracts for `Product`, `Cart`, `Review`, `AI`, and `User`
-- **SEO & Schema.org JSON-LD (`components/seo/JsonLd.tsx`)**:
-  - `ProductJsonLd`: Rich snippets for Google Search (Product name, images, offer, SKU, aggregateRating, availability)
-  - `OrganizationJsonLd`: Brand metadata, social links, customer service support
-  - `WebsiteSearchJsonLd`: Sitelinks Searchbox (`SearchAction`) schema on root layout
-  - `BreadcrumbJsonLd`: BreadcrumbList schema on Product Detail pages
-- **AI Assistant Component Upgrade**: Connected to `AiService` with typing indicators, keyboard accessibility (`aria-expanded`, `aria-label`), and interactive product recommendation cards
-- **Build Verification**: `npm run build` passed with zero errors across all 14 routes
-- **Pushed to GitHub**: Commit `3175985` deployed automatically to Vercel (https://style-me-virid.vercel.app)
+### Session 9 (2026-10-01) — Gender & Frame Shape Filtering Fix 🛠️
+- **Fixed Gender Filter Data Predicate**:
+  - `Men` filter now correctly matches Men's frames (`frame-002`, `frame-003`, `frame-007`, `frame-009`, `frame-021`) + Unisex frames (13 products total).
+  - `Women` filter matches Women's frames + Unisex frames (16 products total).
+  - `Kids` filter matches Kids frames.
+- **Fixed Frame Shape Filtering & Normalization**:
+  - Case-insensitive, alphanumeric normalized shape predicate (`replace(/[^a-z0-9]/g, '')`).
+  - Standardized canonical dataset shape values (`Rectangle`, `Round`, `Cat-Eye`, `Square`, `Aviator`, `Oval`).
+- **Fixed Rectangle Displaying Round Frames Bug**:
+  - `ProductImage.tsx` previously mapped rectangle product IDs to round photos (`raven-black.jpg` & `maple-brown.jpg`).
+  - Updated `ProductImage` mapping and `ProductCard` vector rendering (`GlassesSVG`) to generate shape-accurate SVG frame representations for `Rectangle`, `Square`, `Cat-Eye`, `Aviator`, `Round`, and `Oval`.
+  - Selecting **Rectangle** now displays **100% Rectangle frames** (no round frames shown).
+- **URL & State Sync**: `searchParams` parsing in `ShopContent` synchronizes `category`, `gender`, `shape`, and `q` search parameters with UI state and active filter pills.
+- **Build Verification**: `npm run build` passed with 0 errors across 14 routes.
+- **Pushed to GitHub**: Commit `1a73f6b` deployed to Vercel (https://style-me-virid.vercel.app).
+
 
 
 ---
