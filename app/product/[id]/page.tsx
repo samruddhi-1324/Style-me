@@ -2,9 +2,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { notFound, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { products } from '@/data/products';
 import { useStore } from '@/lib/store';
 import { gsap } from 'gsap';
+import { PRODUCT_IMAGES, PRODUCT_TINTS } from '@/components/product/ProductImage';
 
 interface Props { params: Promise<{ id: string }> }
 
@@ -65,17 +67,39 @@ export default function ProductDetailPage({ params }: Props) {
           <div style={{
             background: 'linear-gradient(145deg, var(--color-cream), var(--color-sand))',
             borderRadius: 'var(--radius-xl)', aspectRatio: '4/3',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
             marginBottom: '1rem', position: 'relative', overflow: 'hidden',
             border: '1px solid rgba(0,0,0,0.06)',
           }}>
-            <ProductSVGLarge color={product!.colors[selectedColor]} shape={product!.frameShape} />
+            {PRODUCT_IMAGES[product!.id] ? (
+              <>
+                <Image
+                  src={PRODUCT_IMAGES[product!.id]}
+                  alt={`${product!.name} eyewear frame`}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  style={{ objectFit: 'cover', objectPosition: 'center top' }}
+                  priority
+                />
+                {PRODUCT_TINTS[product!.id] && (
+                  <div style={{
+                    position: 'absolute', inset: 0,
+                    background: PRODUCT_TINTS[product!.id],
+                    mixBlendMode: 'multiply',
+                    pointerEvents: 'none',
+                  }} />
+                )}
+              </>
+            ) : (
+              <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <ProductSVGLarge color={product!.colors[selectedColor]} shape={product!.frameShape} />
+              </div>
+            )}
             {product!.isNew && (
-              <span className="badge badge-sage" style={{ position: 'absolute', top: '1.25rem', left: '1.25rem' }}>New Arrival</span>
+              <span className="badge badge-sage" style={{ position: 'absolute', top: '1.25rem', left: '1.25rem', zIndex: 2 }}>New Arrival</span>
             )}
             {/* 360 hint */}
             <div style={{
-              position: 'absolute', bottom: '1.25rem', right: '1.25rem',
+              position: 'absolute', bottom: '1.25rem', right: '1.25rem', zIndex: 2,
               background: 'rgba(255,255,255,0.9)', borderRadius: '50px',
               padding: '0.4rem 0.875rem', fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-espresso)',
               display: 'flex', alignItems: 'center', gap: '0.3rem',
@@ -99,10 +123,21 @@ export default function ProductDetailPage({ params }: Props) {
                   borderRadius: 'var(--radius-md)',
                   border: `2px solid ${selectedImage === i ? 'var(--color-forest)' : 'rgba(0,0,0,0.08)'}`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  cursor: 'pointer', transition: 'border-color 0.2s', padding: '0.5rem',
+                  cursor: 'pointer', transition: 'border-color 0.2s', overflow: 'hidden',
+                  position: 'relative', padding: 0,
                 }}
               >
-                <ProductSVGThumb color={product!.colors[selectedColor]} />
+                {PRODUCT_IMAGES[product!.id] ? (
+                  <Image
+                    src={PRODUCT_IMAGES[product!.id]}
+                    alt={`${product!.name} view ${i + 1}`}
+                    fill
+                    sizes="120px"
+                    style={{ objectFit: 'cover', objectPosition: 'center top' }}
+                  />
+                ) : (
+                  <ProductSVGThumb color={product!.colors[selectedColor]} />
+                )}
               </button>
             ))}
           </div>

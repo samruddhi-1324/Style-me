@@ -1,7 +1,9 @@
 'use client';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useStore } from '@/lib/store';
 import { products } from '@/data/products';
+import { PRODUCT_IMAGES } from '@/components/product/ProductImage';
 
 const suggestedIds = ['frame-002', 'frame-003', 'frame-009', 'frame-013'];
 
@@ -49,13 +51,25 @@ export default function CartPage() {
               <div style={{
                 background: 'linear-gradient(135deg, var(--color-cream), var(--color-sand))',
                 borderRadius: 'var(--radius-md)', aspectRatio: '5/3',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                overflow: 'hidden', position: 'relative',
               }}>
-                <svg width="80" height="44" viewBox="0 0 80 44" fill="none">
-                  <rect x="4" y="10" width="30" height="22" rx="5" stroke="var(--color-espresso)" strokeWidth="3" fill="rgba(255,255,255,0.6)" />
-                  <rect x="46" y="10" width="30" height="22" rx="5" stroke="var(--color-espresso)" strokeWidth="3" fill="rgba(255,255,255,0.6)" />
-                  <path d="M34 21 Q40 17 46 21" stroke="var(--color-espresso)" strokeWidth="2.5" strokeLinecap="round" fill="none" />
-                </svg>
+                {PRODUCT_IMAGES[item.productId] ? (
+                  <Image
+                    src={PRODUCT_IMAGES[item.productId]}
+                    alt={item.productName}
+                    fill
+                    sizes="100px"
+                    style={{ objectFit: 'cover', objectPosition: 'center top' }}
+                  />
+                ) : (
+                  <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <svg width="80" height="44" viewBox="0 0 80 44" fill="none">
+                      <rect x="4" y="10" width="30" height="22" rx="5" stroke="var(--color-espresso)" strokeWidth="3" fill="rgba(255,255,255,0.6)" />
+                      <rect x="46" y="10" width="30" height="22" rx="5" stroke="var(--color-espresso)" strokeWidth="3" fill="rgba(255,255,255,0.6)" />
+                      <path d="M34 21 Q40 17 46 21" stroke="var(--color-espresso)" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+                    </svg>
+                  </div>
+                )}
               </div>
 
               {/* Info */}
@@ -144,12 +158,24 @@ export default function CartPage() {
                   onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.boxShadow = '0 8px 24px rgba(0,0,0,0.08)'}
                   onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.boxShadow = 'none'}
                 >
-                  <div style={{ background: 'var(--color-cream)', borderRadius: '8px', padding: '0.625rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '56px' }}>
-                    <svg width="60" height="30" viewBox="0 0 60 30" fill="none">
-                      <rect x="2" y="5" width="22" height="18" rx="4" stroke={p.colors[0]} strokeWidth="2.5" fill="rgba(255,255,255,0.5)" />
-                      <rect x="36" y="5" width="22" height="18" rx="4" stroke={p.colors[0]} strokeWidth="2.5" fill="rgba(255,255,255,0.5)" />
-                      <path d="M24 14 Q30 10 36 14" stroke={p.colors[0]} strokeWidth="2" strokeLinecap="round" fill="none" />
-                    </svg>
+                  <div style={{ background: 'var(--color-cream)', borderRadius: '8px', marginBottom: '0.5rem', overflow: 'hidden', position: 'relative', height: '56px' }}>
+                    {PRODUCT_IMAGES[p.id] ? (
+                      <Image
+                        src={PRODUCT_IMAGES[p.id]}
+                        alt={p.name}
+                        fill
+                        sizes="80px"
+                        style={{ objectFit: 'cover', objectPosition: 'center top' }}
+                      />
+                    ) : (
+                      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <svg width="60" height="30" viewBox="0 0 60 30" fill="none">
+                          <rect x="2" y="5" width="22" height="18" rx="4" stroke={p.colors[0]} strokeWidth="2.5" fill="rgba(255,255,255,0.5)" />
+                          <rect x="36" y="5" width="22" height="18" rx="4" stroke={p.colors[0]} strokeWidth="2.5" fill="rgba(255,255,255,0.5)" />
+                          <path d="M24 14 Q30 10 36 14" stroke={p.colors[0]} strokeWidth="2" strokeLinecap="round" fill="none" />
+                        </svg>
+                      </div>
+                    )}
                   </div>
                   <p style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-espresso)', marginBottom: '0.15rem' }}>{p.name}</p>
                   <p style={{ fontSize: '0.72rem', color: 'var(--color-terracotta)', fontWeight: 700 }}>₹{p.price.toLocaleString('en-IN')}</p>

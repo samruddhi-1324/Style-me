@@ -1,36 +1,26 @@
 'use client';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState } from 'react';
 import { Product } from '@/data/products';
 import { useStore } from '@/lib/store';
+import { PRODUCT_IMAGES, PRODUCT_TINTS } from '@/components/product/ProductImage';
 
 interface ProductCardProps {
   product: Product;
   showTryOn?: boolean;
 }
 
-const frameColors: Record<string, string> = {
-  '#292626': '#1a1a1a',
-  '#8B5E3C': '#8B5E3C',
-  '#4A7C59': '#4A7C59',
-  '#C8A882': '#C8A882',
-  '#5B7FA6': '#5B7FA6',
-  '#6B6B6B': '#6B6B6B',
-  '#DCC5BE': '#DCC5BE',
-  '#9B7CB6': '#9B7CB6',
-  '#A8A8A8': '#A8A8A8',
-  '#C44D40': '#C44D40',
-  '#E8C4C4': '#E8C4C4',
-  '#C66A55': '#C66A55',
-};
-
 export default function ProductCard({ product, showTryOn = true }: ProductCardProps) {
   const [hovered, setHovered] = useState(false);
   const [selectedColorIdx, setSelectedColorIdx] = useState(0);
+  const [imgError, setImgError] = useState(false);
   const { toggleWishlist, isWishlisted } = useStore();
   const wishlisted = isWishlisted(product.id);
   const discount = Math.round((1 - product.price / product.originalPrice) * 100);
 
+  const imgSrc = PRODUCT_IMAGES[product.id];
+  const tint = PRODUCT_TINTS[product.id];
   const activeColorHex = product.colors[selectedColorIdx] || product.colors[0];
 
   return (
@@ -54,16 +44,42 @@ export default function ProductCard({ product, showTryOn = true }: ProductCardPr
       {/* Image */}
       <Link href={`/product/${product.id}`} style={{ display: 'block', position: 'relative' }}>
         <div style={{
-          background: 'linear-gradient(135deg, var(--color-ivory) 0%, var(--color-cream) 100%)',
+          background: 'linear-gradient(135deg, #F8F5EF 0%, #EDE5D9 100%)',
           aspectRatio: '4/3',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
           position: 'relative',
           overflow: 'hidden',
         }}>
-          {/* Eyewear SVG with active color */}
-          <GlassesSVG color={activeColorHex} shape={product.frameShape} />
+          {/* Real product image or SVG fallback */}
+          {imgSrc && !imgError ? (
+            <>
+              <Image
+                src={imgSrc}
+                alt={`${product.name} eyewear frame`}
+                fill
+                sizes="(max-width: 480px) 50vw, (max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                style={{ objectFit: 'cover', objectPosition: 'center top' }}
+                loading="lazy"
+                onError={() => setImgError(true)}
+              />
+              {/* Color tint overlay for visual differentiation */}
+              {tint && (
+                <div style={{
+                  position: 'absolute', inset: 0,
+                  background: tint,
+                  mixBlendMode: 'multiply',
+                  pointerEvents: 'none',
+                }} />
+              )}
+            </>
+          ) : (
+            <div style={{
+              position: 'absolute', inset: 0,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'linear-gradient(135deg, #F2E8DE 0%, #EDE5D9 100%)',
+            }}>
+              <GlassesSVG color={activeColorHex} shape={product.frameShape} />
+            </div>
+          )}
 
           {/* Badges */}
           <div style={{ position: 'absolute', top: '0.75rem', left: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.3rem', zIndex: 2 }}>
@@ -81,6 +97,7 @@ export default function ProductCard({ product, showTryOn = true }: ProductCardPr
             background: 'rgba(36,21,38,0.04)',
             opacity: hovered ? 1 : 0,
             transition: 'opacity 0.3s',
+            zIndex: 1,
           }} />
         </div>
       </Link>
@@ -102,7 +119,7 @@ export default function ProductCard({ product, showTryOn = true }: ProductCardPr
         </svg>
       </button>
 
-      {/* Info Container with flex-1 */}
+      {/* Info Container */}
       <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', flex: 1 }}>
         <Link href={`/product/${product.id}`} style={{ display: 'block', textDecoration: 'none' }}>
           <h3 style={{
@@ -206,7 +223,6 @@ function GlassesSVG({ color, shape }: { color: string; shape: string }) {
       </svg>
     );
   }
-
   if (shape === 'Cat-eye') {
     return (
       <svg width="160" height="80" viewBox="0 0 160 80" fill="none" className="float-animation-slow">
@@ -218,7 +234,6 @@ function GlassesSVG({ color, shape }: { color: string; shape: string }) {
       </svg>
     );
   }
-
   if (shape === 'Aviator') {
     return (
       <svg width="160" height="80" viewBox="0 0 160 80" fill="none" className="float-animation-slow">
@@ -230,8 +245,6 @@ function GlassesSVG({ color, shape }: { color: string; shape: string }) {
       </svg>
     );
   }
-
-  // Default: Rectangle / Square
   return (
     <svg width="170" height="80" viewBox="0 0 170 80" fill="none" className="float-animation-slow">
       <rect x="14" y="20" width="62" height="40" rx="6" stroke={c} strokeWidth="5" fill="rgba(255,255,255,0.5)" />

@@ -2,9 +2,11 @@
 import { useState, useRef, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { products } from '@/data/products';
 import { useStore } from '@/lib/store';
 import { gsap } from 'gsap';
+import { PRODUCT_IMAGES, PRODUCT_TINTS } from '@/components/product/ProductImage';
 
 function TryOnContent() {
   const searchParams = useSearchParams();
@@ -279,12 +281,24 @@ function TryOnContent() {
               Selected Frame
             </p>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem' }}>
-              <div style={{ width: '60px', height: '40px', background: 'var(--color-cream)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <svg width="50" height="28" viewBox="0 0 50 28" fill="none">
-                  <rect x="3" y="6" width="18" height="14" rx="3" stroke={currentFrame.colors[0]} strokeWidth="2.5" fill="rgba(255,255,255,0.5)" />
-                  <rect x="29" y="6" width="18" height="14" rx="3" stroke={currentFrame.colors[0]} strokeWidth="2.5" fill="rgba(255,255,255,0.5)" />
-                  <path d="M21 13 Q25 10 29 13" stroke={currentFrame.colors[0]} strokeWidth="2" strokeLinecap="round" fill="none" />
-                </svg>
+              <div style={{ width: '72px', height: '48px', background: 'var(--color-cream)', borderRadius: '8px', overflow: 'hidden', position: 'relative', flexShrink: 0 }}>
+                {PRODUCT_IMAGES[currentFrame.id] ? (
+                  <Image
+                    src={PRODUCT_IMAGES[currentFrame.id]}
+                    alt={currentFrame.name}
+                    fill
+                    sizes="72px"
+                    style={{ objectFit: 'cover', objectPosition: 'center top' }}
+                  />
+                ) : (
+                  <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <svg width="50" height="28" viewBox="0 0 50 28" fill="none">
+                      <rect x="3" y="6" width="18" height="14" rx="3" stroke={currentFrame.colors[0]} strokeWidth="2.5" fill="rgba(255,255,255,0.5)" />
+                      <rect x="29" y="6" width="18" height="14" rx="3" stroke={currentFrame.colors[0]} strokeWidth="2.5" fill="rgba(255,255,255,0.5)" />
+                      <path d="M21 13 Q25 10 29 13" stroke={currentFrame.colors[0]} strokeWidth="2" strokeLinecap="round" fill="none" />
+                    </svg>
+                  </div>
+                )}
               </div>
               <div>
                 <p style={{ fontWeight: 700, color: 'var(--color-espresso)' }}>{currentFrame.name}</p>
@@ -323,16 +337,27 @@ function TryOnContent() {
                   style={{
                     aspectRatio: '1', background: 'var(--color-cream)', borderRadius: '8px',
                     border: `2px solid ${selectedFrame === f.id ? 'var(--color-forest)' : 'transparent'}`,
-                    cursor: 'pointer', padding: '0.3rem', transition: 'all 0.2s',
+                    cursor: 'pointer', padding: 0, transition: 'all 0.2s',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    overflow: 'hidden', position: 'relative',
                   }}
                   title={f.name}
                 >
-                  <svg width="36" height="20" viewBox="0 0 36 20" fill="none">
-                    <rect x="2" y="4" width="13" height="10" rx="2.5" stroke={f.colors[0]} strokeWidth="2" fill="rgba(255,255,255,0.5)" />
-                    <rect x="21" y="4" width="13" height="10" rx="2.5" stroke={f.colors[0]} strokeWidth="2" fill="rgba(255,255,255,0.5)" />
-                    <path d="M15 9 Q18 7 21 9" stroke={f.colors[0]} strokeWidth="1.5" strokeLinecap="round" fill="none" />
-                  </svg>
+                  {PRODUCT_IMAGES[f.id] ? (
+                    <Image
+                      src={PRODUCT_IMAGES[f.id]}
+                      alt={f.name}
+                      fill
+                      sizes="80px"
+                      style={{ objectFit: 'cover', objectPosition: 'center top' }}
+                    />
+                  ) : (
+                    <svg width="36" height="20" viewBox="0 0 36 20" fill="none">
+                      <rect x="2" y="4" width="13" height="10" rx="2.5" stroke={f.colors[0]} strokeWidth="2" fill="rgba(255,255,255,0.5)" />
+                      <rect x="21" y="4" width="13" height="10" rx="2.5" stroke={f.colors[0]} strokeWidth="2" fill="rgba(255,255,255,0.5)" />
+                      <path d="M15 9 Q18 7 21 9" stroke={f.colors[0]} strokeWidth="1.5" strokeLinecap="round" fill="none" />
+                    </svg>
+                  )}
                 </button>
               ))}
             </div>

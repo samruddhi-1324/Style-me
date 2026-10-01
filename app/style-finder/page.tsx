@@ -1,8 +1,10 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useStore } from '@/lib/store';
 import { products } from '@/data/products';
+import { PRODUCT_IMAGES, PRODUCT_TINTS } from '@/components/product/ProductImage';
 
 type FaceShape = 'oval' | 'round' | 'square' | 'heart' | 'oblong' | null;
 type StylePref = 'classic' | 'bold' | 'minimal' | 'sporty' | 'retro';
@@ -131,12 +133,38 @@ export default function StyleFinderPage() {
                     <span style={{ color: 'white', fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em' }}>★ TOP AI RECOMMENDATION</span>
                   </div>
                 )}
-                <div style={{ background: 'linear-gradient(135deg, var(--color-cream), var(--color-sand))', padding: '2.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <svg width="140" height="60" viewBox="0 0 140 60" fill="none">
-                    <rect x="6" y="12" width="50" height="34" rx="7" stroke={product.colors[0]} strokeWidth="3.5" fill="rgba(255,255,255,0.45)" />
-                    <rect x="84" y="12" width="50" height="34" rx="7" stroke={product.colors[0]} strokeWidth="3.5" fill="rgba(255,255,255,0.45)" />
-                    <path d="M56 29 Q70 21 84 29" stroke={product.colors[0]} strokeWidth="2.5" strokeLinecap="round" fill="none" />
-                  </svg>
+                <div style={{
+                  background: 'linear-gradient(135deg, var(--color-cream), var(--color-sand))',
+                  padding: PRODUCT_IMAGES[product.id] ? '0' : '2.5rem',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  aspectRatio: '4/3', position: 'relative', overflow: 'hidden',
+                }}>
+                  {PRODUCT_IMAGES[product.id] ? (
+                    <>
+                      <Image
+                        src={PRODUCT_IMAGES[product.id]}
+                        alt={`${product.name} eyewear frame`}
+                        fill
+                        sizes="(max-width: 768px) 100vw, 33vw"
+                        style={{ objectFit: 'cover', objectPosition: 'center top' }}
+                        loading="lazy"
+                      />
+                      {PRODUCT_TINTS[product.id] && (
+                        <div style={{
+                          position: 'absolute', inset: 0,
+                          background: PRODUCT_TINTS[product.id],
+                          mixBlendMode: 'multiply',
+                          pointerEvents: 'none',
+                        }} />
+                      )}
+                    </>
+                  ) : (
+                    <svg width="140" height="60" viewBox="0 0 140 60" fill="none">
+                      <rect x="6" y="12" width="50" height="34" rx="7" stroke={product.colors[0]} strokeWidth="3.5" fill="rgba(255,255,255,0.45)" />
+                      <rect x="84" y="12" width="50" height="34" rx="7" stroke={product.colors[0]} strokeWidth="3.5" fill="rgba(255,255,255,0.45)" />
+                      <path d="M56 29 Q70 21 84 29" stroke={product.colors[0]} strokeWidth="2.5" strokeLinecap="round" fill="none" />
+                    </svg>
+                  )}
                 </div>
                 <div style={{ padding: '1.25rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
