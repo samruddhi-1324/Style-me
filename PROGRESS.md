@@ -171,6 +171,24 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass; cd "d:\Style me\styl
 - **Build Verification**: `npm run build` passed with 0 errors across 14 static/dynamic routes.
 - **Pushed to GitHub**: Commit `9baa1f3` deployed to Vercel (https://style-me-virid.vercel.app).
 
+### Session 11 (2026-10-01) — Product Images & Virtual Try-On Complete Fix 🎯
+- **Fixed User Photo Upload (`app/try-on/page.tsx`)**:
+  - Implemented client-side file picker (`<input type="file" accept="image/jpeg,image/jpg,image/png,image/webp" />`).
+  - Added object URL creation (`URL.createObjectURL(file)`) and automatic memory cleanup (`URL.revokeObjectURL`).
+  - Added file format validation (JPG/PNG/WEBP only) and file size validation (max 10MB) with user-friendly error alerts.
+  - Added "Replace Photo" and "Remove Photo / Back to Demo" controls.
+  - Rendered eyewear overlay (`GlassesOverlaySVG`) over uploaded photo with full interactive controls (X, Y, Scale, Rotation).
+- **Fixed Try-On Filtering System**:
+  - Implemented data-driven canonical filter dropdowns for Category, Gender, Frame Shape, Colour, and Frame Material.
+  - Aligned filtering predicate with `data/products.ts` canonical schema (Men includes Men + Unisex, Women includes Women + Unisex).
+- **Fixed Try-On Reset Button**:
+  - Added a dedicated "Clear Filters" button that clears all filter dropdowns, clears active filter count, resets position & rotation fine-tuning controls (`frameX=0, frameY=0, frameScale=1.0, frameRotation=0`), and restores the full 24-frame product carousel.
+- **Product Images Resolution**:
+  - Verified shape-accurate visual rendering across Home, Shop, PDP, Wishlist, Cart, and Try-On.
+- **Build Verification**: `npm run build` passed with 0 errors across 14 static/dynamic routes.
+- **Pushed to GitHub**: Commit `d68e149` deployed to Vercel (https://style-me-virid.vercel.app).
+
+
 
 
 
