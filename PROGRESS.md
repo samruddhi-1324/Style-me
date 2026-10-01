@@ -161,21 +161,16 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass; cd "d:\Style me\styl
 - Header mobile drawer, MobileNav bottom bar implemented
 - Shop page mobile filter bottom-sheet implemented
 
-### Session 9 (2026-10-01) — Gender & Frame Shape Filtering Fix 🛠️
-- **Fixed Gender Filter Data Predicate**:
-  - `Men` filter now correctly matches Men's frames (`frame-002`, `frame-003`, `frame-007`, `frame-009`, `frame-021`) + Unisex frames (13 products total).
-  - `Women` filter matches Women's frames + Unisex frames (16 products total).
-  - `Kids` filter matches Kids frames.
-- **Fixed Frame Shape Filtering & Normalization**:
-  - Case-insensitive, alphanumeric normalized shape predicate (`replace(/[^a-z0-9]/g, '')`).
-  - Standardized canonical dataset shape values (`Rectangle`, `Round`, `Cat-Eye`, `Square`, `Aviator`, `Oval`).
-- **Fixed Rectangle Displaying Round Frames Bug**:
-  - `ProductImage.tsx` previously mapped rectangle product IDs to round photos (`raven-black.jpg` & `maple-brown.jpg`).
-  - Updated `ProductImage` mapping and `ProductCard` vector rendering (`GlassesSVG`) to generate shape-accurate SVG frame representations for `Rectangle`, `Square`, `Cat-Eye`, `Aviator`, `Round`, and `Oval`.
-  - Selecting **Rectangle** now displays **100% Rectangle frames** (no round frames shown).
-- **URL & State Sync**: `searchParams` parsing in `ShopContent` synchronizes `category`, `gender`, `shape`, and `q` search parameters with UI state and active filter pills.
-- **Build Verification**: `npm run build` passed with 0 errors across 14 routes.
-- **Pushed to GitHub**: Commit `1a73f6b` deployed to Vercel (https://style-me-virid.vercel.app).
+### Session 10 (2026-10-01) — React Hydration Mismatch Fix 🔧
+- **Diagnosed Hydration Mismatch**:
+  - `Header.tsx` & `MobileNav.tsx` conditionally rendered `<span className="cart-badge">{cartCount}</span>` and `<span className="wishlist-badge">{wishlist.length}</span>` based on Zustand's `localStorage` state.
+  - On SSR server mount, `cartCount` & `wishlist.length` were `0` (no badge rendered). On client mount, persisted `localStorage` populated `cartCount > 0`, causing React Hydration error (`Hydration failed because the server rendered HTML didn't match the client`).
+- **Fix Implemented**:
+  - Added `mounted` boolean state (`const [mounted, setMounted] = useState(false); useEffect(() => setMounted(true), []);`).
+  - Wrapped cart badge & wishlist badge renders with `{mounted && ...}` in both `Header.tsx` and `MobileNav.tsx`.
+- **Build Verification**: `npm run build` passed with 0 errors across 14 static/dynamic routes.
+- **Pushed to GitHub**: Commit `9baa1f3` deployed to Vercel (https://style-me-virid.vercel.app).
+
 
 
 
