@@ -211,47 +211,89 @@ export default function ProductCard({ product, showTryOn = true }: ProductCardPr
 
 function GlassesSVG({ color, shape }: { color: string; shape: string }) {
   const c = color || '#8B5E3C';
+  const normShape = (shape || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
 
-  if (shape === 'Round' || shape === 'Oval') {
+  if (normShape === 'round') {
     return (
-      <svg width="160" height="80" viewBox="0 0 160 80" fill="none" className="float-animation-slow">
-        <ellipse cx="45" cy="40" rx="32" ry="28" stroke={c} strokeWidth="5" fill="rgba(255,255,255,0.5)" />
-        <ellipse cx="115" cy="40" rx="32" ry="28" stroke={c} strokeWidth="5" fill="rgba(255,255,255,0.5)" />
-        <path d="M77 40 Q80 36 83 40" stroke={c} strokeWidth="4" strokeLinecap="round" fill="none" />
-        <path d="M13 35 Q8 32 4 36" stroke={c} strokeWidth="3.5" strokeLinecap="round" />
-        <path d="M147 35 Q152 32 156 36" stroke={c} strokeWidth="3.5" strokeLinecap="round" />
+      <svg width="170" height="85" viewBox="0 0 170 85" fill="none" className="float-animation-slow">
+        <ellipse cx="48" cy="42.5" rx="30" ry="27" stroke={c} strokeWidth="4.5" fill="rgba(255,255,255,0.6)" />
+        <ellipse cx="122" cy="42.5" rx="30" ry="27" stroke={c} strokeWidth="4.5" fill="rgba(255,255,255,0.6)" />
+        <path d="M78 42.5 Q85 38.5 92 42.5" stroke={c} strokeWidth="4" strokeLinecap="round" fill="none" />
+        <path d="M18 38 Q12 35 6 39" stroke={c} strokeWidth="3.5" strokeLinecap="round" />
+        <path d="M152 38 Q158 35 164 39" stroke={c} strokeWidth="3.5" strokeLinecap="round" />
+        <path d="M30 28 L50 20" stroke="rgba(255,255,255,0.8)" strokeWidth="2.5" strokeLinecap="round" />
+        <path d="M104 28 L124 20" stroke="rgba(255,255,255,0.8)" strokeWidth="2.5" strokeLinecap="round" />
       </svg>
     );
   }
-  if (shape === 'Cat-eye') {
+
+  if (normShape === 'square') {
     return (
-      <svg width="160" height="80" viewBox="0 0 160 80" fill="none" className="float-animation-slow">
-        <path d="M13 44 Q20 16 48 20 Q60 20 77 38 Q60 56 45 54 Q22 52 13 44Z" stroke={c} strokeWidth="4.5" fill="rgba(255,255,255,0.5)" />
-        <path d="M147 44 Q140 16 112 20 Q100 20 83 38 Q100 56 115 54 Q138 52 147 44Z" stroke={c} strokeWidth="4.5" fill="rgba(255,255,255,0.5)" />
-        <path d="M77 39 Q80 35 83 39" stroke={c} strokeWidth="4" strokeLinecap="round" fill="none" />
-        <path d="M13 40 Q8 37 4 40" stroke={c} strokeWidth="3.5" strokeLinecap="round" />
-        <path d="M147 40 Q152 37 156 40" stroke={c} strokeWidth="3.5" strokeLinecap="round" />
+      <svg width="175" height="85" viewBox="0 0 175 85" fill="none" className="float-animation-slow">
+        <rect x="14" y="18" width="62" height="48" rx="8" stroke={c} strokeWidth="4.8" fill="rgba(255,255,255,0.6)" />
+        <rect x="99" y="18" width="62" height="48" rx="8" stroke={c} strokeWidth="4.8" fill="rgba(255,255,255,0.6)" />
+        <path d="M76 40 Q87.5 36 99 40" stroke={c} strokeWidth="4" strokeLinecap="round" fill="none" />
+        <path d="M14 32 Q9 29 5 33" stroke={c} strokeWidth="3.5" strokeLinecap="round" />
+        <path d="M161 32 Q166 29 170 33" stroke={c} strokeWidth="3.5" strokeLinecap="round" />
+        <path d="M22 24 L48 22" stroke="rgba(255,255,255,0.8)" strokeWidth="2.5" strokeLinecap="round" />
+        <path d="M107 24 L133 22" stroke="rgba(255,255,255,0.8)" strokeWidth="2.5" strokeLinecap="round" />
       </svg>
     );
   }
-  if (shape === 'Aviator') {
+
+  if (normShape === 'cateye') {
     return (
-      <svg width="160" height="80" viewBox="0 0 160 80" fill="none" className="float-animation-slow">
-        <path d="M13 24 Q14 18 20 18 L70 18 Q78 18 77 32 Q77 54 45 54 Q20 54 13 38 Z" stroke={c} strokeWidth="4.5" fill="rgba(255,255,255,0.5)" />
-        <path d="M147 24 Q146 18 140 18 L90 18 Q82 18 83 32 Q83 54 115 54 Q140 54 147 38 Z" stroke={c} strokeWidth="4.5" fill="rgba(255,255,255,0.5)" />
-        <path d="M77 24 Q80 20 83 24" stroke={c} strokeWidth="4" strokeLinecap="round" fill="none" />
-        <path d="M13 28 Q8 26 4 30" stroke={c} strokeWidth="3.5" strokeLinecap="round" />
-        <path d="M147 28 Q152 26 156 30" stroke={c} strokeWidth="3.5" strokeLinecap="round" />
+      <svg width="175" height="85" viewBox="0 0 175 85" fill="none" className="float-animation-slow">
+        <path d="M14 46 Q22 18 52 22 Q64 22 76 40 Q64 58 48 56 Q24 54 14 46Z" stroke={c} strokeWidth="4.5" fill="rgba(255,255,255,0.6)" />
+        <path d="M161 46 Q153 18 123 22 Q111 22 99 40 Q111 58 127 56 Q151 54 161 46Z" stroke={c} strokeWidth="4.5" fill="rgba(255,255,255,0.6)" />
+        <path d="M76 41 Q87.5 37 99 41" stroke={c} strokeWidth="4" strokeLinecap="round" fill="none" />
+        <path d="M14 42 Q9 39 5 42" stroke={c} strokeWidth="3.5" strokeLinecap="round" />
+        <path d="M161 42 Q166 39 170 42" stroke={c} strokeWidth="3.5" strokeLinecap="round" />
+        <path d="M26 30 L46 24" stroke="rgba(255,255,255,0.8)" strokeWidth="2.5" strokeLinecap="round" />
+        <path d="M111 30 L131 24" stroke="rgba(255,255,255,0.8)" strokeWidth="2.5" strokeLinecap="round" />
       </svg>
     );
   }
+
+  if (normShape === 'aviator') {
+    return (
+      <svg width="175" height="85" viewBox="0 0 175 85" fill="none" className="float-animation-slow">
+        <path d="M14 26 Q15 20 22 20 L72 20 Q78 20 78 34 Q78 56 46 56 Q20 56 14 40 Z" stroke={c} strokeWidth="4.5" fill="rgba(255,255,255,0.6)" />
+        <path d="M161 26 Q160 20 153 20 L103 20 Q97 20 97 34 Q97 56 129 56 Q155 56 161 40 Z" stroke={c} strokeWidth="4.5" fill="rgba(255,255,255,0.6)" />
+        <path d="M78 26 Q87.5 22 97 26" stroke={c} strokeWidth="4" strokeLinecap="round" fill="none" />
+        <path d="M78 33 Q87.5 29 97 33" stroke={c} strokeWidth="3" strokeLinecap="round" fill="none" />
+        <path d="M14 30 Q9 28 5 32" stroke={c} strokeWidth="3.5" strokeLinecap="round" />
+        <path d="M161 30 Q166 28 170 32" stroke={c} strokeWidth="3.5" strokeLinecap="round" />
+        <path d="M24 28 L48 26" stroke="rgba(255,255,255,0.8)" strokeWidth="2.5" strokeLinecap="round" />
+        <path d="M109 28 L133 26" stroke="rgba(255,255,255,0.8)" strokeWidth="2.5" strokeLinecap="round" />
+      </svg>
+    );
+  }
+
+  if (normShape === 'oval') {
+    return (
+      <svg width="175" height="85" viewBox="0 0 175 85" fill="none" className="float-animation-slow">
+        <ellipse cx="46" cy="42.5" rx="32" ry="22" stroke={c} strokeWidth="4.5" fill="rgba(255,255,255,0.6)" />
+        <ellipse cx="129" cy="42.5" rx="32" ry="22" stroke={c} strokeWidth="4.5" fill="rgba(255,255,255,0.6)" />
+        <path d="M78 42.5 Q87.5 38.5 97 42.5" stroke={c} strokeWidth="4" strokeLinecap="round" fill="none" />
+        <path d="M14 38 Q9 35 5 39" stroke={c} strokeWidth="3.5" strokeLinecap="round" />
+        <path d="M161 38 Q166 35 170 39" stroke={c} strokeWidth="3.5" strokeLinecap="round" />
+        <path d="M24 32 L46 26" stroke="rgba(255,255,255,0.8)" strokeWidth="2.5" strokeLinecap="round" />
+        <path d="M107 32 L129 26" stroke="rgba(255,255,255,0.8)" strokeWidth="2.5" strokeLinecap="round" />
+      </svg>
+    );
+  }
+
+  // Default Rectangle
   return (
-    <svg width="170" height="80" viewBox="0 0 170 80" fill="none" className="float-animation-slow">
-      <rect x="14" y="20" width="62" height="40" rx="6" stroke={c} strokeWidth="5" fill="rgba(255,255,255,0.5)" />
-      <rect x="94" y="20" width="62" height="40" rx="6" stroke={c} strokeWidth="5" fill="rgba(255,255,255,0.5)" />
-      <path d="M76 40 Q80 36 94 40" stroke={c} strokeWidth="4" strokeLinecap="round" fill="none" />
-      <path d="M14 35 Q9 32 5 36" stroke={c} strokeWidth="3.5" strokeLinecap="round" />
-      <path d="M156 35 Q161 32 165 36" stroke={c} strokeWidth="3.5" strokeLinecap="round" />
+    <svg width="175" height="85" viewBox="0 0 175 85" fill="none" className="float-animation-slow">
+      <rect x="14" y="24" width="62" height="37" rx="5" stroke={c} strokeWidth="4.5" fill="rgba(255,255,255,0.6)" />
+      <rect x="99" y="24" width="62" height="37" rx="5" stroke={c} strokeWidth="4.5" fill="rgba(255,255,255,0.6)" />
+      <path d="M76 42 Q87.5 38 99 42" stroke={c} strokeWidth="4" strokeLinecap="round" fill="none" />
+      <path d="M14 36 Q9 33 5 37" stroke={c} strokeWidth="3.5" strokeLinecap="round" />
+      <path d="M161 36 Q166 33 170 37" stroke={c} strokeWidth="3.5" strokeLinecap="round" />
+      <path d="M22 30 L45 27" stroke="rgba(255,255,255,0.8)" strokeWidth="2.5" strokeLinecap="round" />
+      <path d="M107 30 L130 27" stroke="rgba(255,255,255,0.8)" strokeWidth="2.5" strokeLinecap="round" />
     </svg>
   );
 }

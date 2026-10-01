@@ -2,61 +2,23 @@
 import Image from 'next/image';
 import { useState } from 'react';
 
-/** Map of product IDs → public image paths */
+/** Map of product IDs → public photo image paths ONLY when photo matches frame shape */
 export const PRODUCT_IMAGES: Record<string, string> = {
-  // Real generated photos
-  'frame-018': '/assets/products/eyeglasses/sunrise-rose.jpg',   // Sunrise Rose
-  'frame-002': '/assets/products/eyeglasses/raven-black.jpg',    // Raven Black
-  'frame-004': '/assets/products/eyeglasses/maple-brown.jpg',    // Maple Brown
-  'frame-008': '/assets/products/eyeglasses/blush-pink.jpg',     // Blush Pink
-  'frame-006': '/assets/products/eyeglasses/crystal-clear.jpg',  // Crystal Clear
-
-  // Reuse closest visual match for remaining frames
-  'frame-001': '/assets/products/eyeglasses/maple-brown.jpg',    // Willow Tortoise → tortoiseshell
-  'frame-003': '/assets/products/eyeglasses/raven-black.jpg',    // Azure Blue → rectangular (reuse black, tinted)
-  'frame-005': '/assets/products/eyeglasses/blush-pink.jpg',     // Olive Green → cat-eye shape match
-  'frame-007': '/assets/products/eyeglasses/raven-black.jpg',    // Graphite Grey → rectangular metal
-  'frame-019': '/assets/products/eyeglasses/maple-brown.jpg',    // Heritage Round → warm acetate
-  'frame-020': '/assets/products/eyeglasses/raven-black.jpg',    // Minimal Wire → thin frame
-  'frame-023': '/assets/products/eyeglasses/crystal-clear.jpg',  // Pebble Oval → transparent oval
-
-  // Sunglasses (use closest real images)
-  'frame-009': '/assets/products/eyeglasses/raven-black.jpg',    // Cobalt Shield
-  'frame-010': '/assets/products/eyeglasses/maple-brown.jpg',    // Desert Sand
-  'frame-011': '/assets/products/eyeglasses/raven-black.jpg',    // Noir Oversize
-  'frame-012': '/assets/products/eyeglasses/blush-pink.jpg',     // Terracotta Cat
-  'frame-021': '/assets/products/eyeglasses/raven-black.jpg',    // Bold Square
-
-  // Blue-light
-  'frame-013': '/assets/products/eyeglasses/raven-black.jpg',    // Focus Pro
-  'frame-014': '/assets/products/eyeglasses/raven-black.jpg',    // Scholar Thin
-  'frame-015': '/assets/products/eyeglasses/maple-brown.jpg',    // Night Owl
-  'frame-022': '/assets/products/eyeglasses/maple-brown.jpg',    // Forest Green
-
-  // Kids
-  'frame-016': '/assets/products/eyeglasses/raven-black.jpg',    // Sparky
-  'frame-017': '/assets/products/eyeglasses/raven-black.jpg',    // Mini Scholar
-  'frame-024': '/assets/products/eyeglasses/crystal-clear.jpg',  // Tiny Tot
+  // Real generated photos matching exact frame shape
+  'frame-002': '/assets/products/eyeglasses/raven-black.jpg',    // Raven Black (Round)
+  'frame-004': '/assets/products/eyeglasses/maple-brown.jpg',    // Maple Brown (Aviator)
+  'frame-006': '/assets/products/eyeglasses/crystal-clear.jpg',  // Crystal Clear (Round)
+  'frame-008': '/assets/products/eyeglasses/blush-pink.jpg',     // Blush Pink (Cat-Eye)
+  'frame-018': '/assets/products/eyeglasses/sunrise-rose.jpg',   // Sunrise Rose (Cat-Eye)
+  'frame-015': '/assets/products/eyeglasses/raven-black.jpg',    // Night Owl (Round)
+  'frame-019': '/assets/products/eyeglasses/crystal-clear.jpg',  // Heritage Round (Round)
+  'frame-024': '/assets/products/eyeglasses/crystal-clear.jpg',  // Tiny Tot (Round)
 };
 
 /** Per-product color tint overlay to visually differentiate reused base images */
 export const PRODUCT_TINTS: Record<string, string> = {
-  'frame-003': 'rgba(91,127,166,0.22)',   // Azure Blue
-  'frame-005': 'rgba(74,124,89,0.22)',    // Olive Green
-  'frame-007': 'rgba(107,107,107,0.20)',  // Graphite Grey
-  'frame-009': 'rgba(91,127,166,0.30)',   // Cobalt Shield
-  'frame-010': 'rgba(200,168,130,0.18)',  // Desert Sand
-  'frame-012': 'rgba(198,106,85,0.28)',   // Terracotta Cat
-  'frame-013': 'rgba(41,38,38,0.12)',     // Focus Pro
-  'frame-014': 'rgba(200,168,130,0.20)',  // Scholar Thin
   'frame-015': 'rgba(200,168,130,0.22)',  // Night Owl
-  'frame-016': 'rgba(196,77,64,0.22)',    // Sparky
-  'frame-017': 'rgba(91,127,166,0.25)',   // Mini Scholar
   'frame-019': 'rgba(200,168,130,0.18)',  // Heritage Round
-  'frame-020': 'rgba(168,168,168,0.20)',  // Minimal Wire
-  'frame-021': 'rgba(41,38,38,0.18)',     // Bold Square
-  'frame-022': 'rgba(74,124,89,0.25)',    // Forest Green
-  'frame-023': 'rgba(107,107,107,0.15)',  // Pebble Oval
   'frame-024': 'rgba(155,124,182,0.22)',  // Tiny Tot
 };
 
@@ -86,7 +48,6 @@ export default function ProductImage({
   const tint = PRODUCT_TINTS[productId];
 
   if (!src || imgError) {
-    // Polished SVG fallback
     return (
       <div style={{
         width: '100%', height: '100%',
@@ -103,80 +64,98 @@ export default function ProductImage({
     <div style={{ position: 'relative', width: '100%', height: '100%', ...style }} className={className}>
       <Image
         src={src}
-        alt={`${productName} eyewear frame`}
-        fill={fill || true}
-        sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-        style={{ objectFit: 'cover', objectPosition: 'center' }}
+        alt={productName}
+        fill={fill}
+        width={!fill ? 300 : undefined}
+        height={!fill ? 225 : undefined}
         priority={priority}
+        style={{ objectFit: 'cover', objectPosition: 'center top' }}
         onError={() => setImgError(true)}
       />
-      {/* Color tint overlay for visual differentiation */}
       {tint && (
         <div style={{
           position: 'absolute', inset: 0,
           background: tint,
           mixBlendMode: 'multiply',
           pointerEvents: 'none',
-          borderRadius: 'inherit',
         }} />
       )}
     </div>
   );
 }
 
-/** Clean SVG fallback glasses */
 function FallbackFrameSVG({ color, shape }: { color: string; shape: string }) {
-  const c = color;
+  const c = color || '#8B5E3C';
+  const normShape = (shape || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
 
-  if (shape === 'Round' || shape === 'Oval') {
+  if (normShape === 'round') {
     return (
-      <svg width="160" height="80" viewBox="0 0 160 80" fill="none">
-        <ellipse cx="45" cy="40" rx="32" ry="28" stroke={c} strokeWidth="5" fill="rgba(255,255,255,0.5)" />
-        <ellipse cx="115" cy="40" rx="32" ry="28" stroke={c} strokeWidth="5" fill="rgba(255,255,255,0.5)" />
-        <path d="M77 40 Q80 36 83 40" stroke={c} strokeWidth="4" strokeLinecap="round" fill="none" />
-        <path d="M13 35 Q8 32 4 36" stroke={c} strokeWidth="3.5" strokeLinecap="round" />
-        <path d="M147 35 Q152 32 156 36" stroke={c} strokeWidth="3.5" strokeLinecap="round" />
-        <path d="M30 30 Q45 24 55 28" stroke="rgba(255,255,255,0.7)" strokeWidth="2" strokeLinecap="round" />
-        <path d="M100 30 Q115 24 125 28" stroke="rgba(255,255,255,0.7)" strokeWidth="2" strokeLinecap="round" />
+      <svg width="170" height="85" viewBox="0 0 170 85" fill="none">
+        <ellipse cx="48" cy="42.5" rx="30" ry="27" stroke={c} strokeWidth="4.5" fill="rgba(255,255,255,0.6)" />
+        <ellipse cx="122" cy="42.5" rx="30" ry="27" stroke={c} strokeWidth="4.5" fill="rgba(255,255,255,0.6)" />
+        <path d="M78 42.5 Q85 38.5 92 42.5" stroke={c} strokeWidth="4" strokeLinecap="round" fill="none" />
+        <path d="M18 38 Q12 35 6 39" stroke={c} strokeWidth="3.5" strokeLinecap="round" />
+        <path d="M152 38 Q158 35 164 39" stroke={c} strokeWidth="3.5" strokeLinecap="round" />
       </svg>
     );
   }
-  if (shape === 'Cat-eye') {
+
+  if (normShape === 'rectangle') {
     return (
-      <svg width="160" height="80" viewBox="0 0 160 80" fill="none">
-        <path d="M13 44 Q20 16 48 20 Q60 20 77 38 Q60 56 45 54 Q22 52 13 44Z" stroke={c} strokeWidth="4.5" fill="rgba(255,255,255,0.5)" />
-        <path d="M147 44 Q140 16 112 20 Q100 20 83 38 Q100 56 115 54 Q138 52 147 44Z" stroke={c} strokeWidth="4.5" fill="rgba(255,255,255,0.5)" />
-        <path d="M77 39 Q80 35 83 39" stroke={c} strokeWidth="4" strokeLinecap="round" fill="none" />
-        <path d="M13 40 Q8 37 4 40" stroke={c} strokeWidth="3.5" strokeLinecap="round" />
-        <path d="M147 40 Q152 37 156 40" stroke={c} strokeWidth="3.5" strokeLinecap="round" />
-        <path d="M20 32 Q35 24 48 26" stroke="rgba(255,255,255,0.7)" strokeWidth="2" strokeLinecap="round" />
-        <path d="M112 26 Q125 24 140 32" stroke="rgba(255,255,255,0.7)" strokeWidth="2" strokeLinecap="round" />
+      <svg width="175" height="85" viewBox="0 0 175 85" fill="none">
+        <rect x="14" y="24" width="62" height="37" rx="5" stroke={c} strokeWidth="4.5" fill="rgba(255,255,255,0.6)" />
+        <rect x="99" y="24" width="62" height="37" rx="5" stroke={c} strokeWidth="4.5" fill="rgba(255,255,255,0.6)" />
+        <path d="M76 42 Q87.5 38 99 42" stroke={c} strokeWidth="4" strokeLinecap="round" fill="none" />
+        <path d="M14 36 Q9 33 5 37" stroke={c} strokeWidth="3.5" strokeLinecap="round" />
+        <path d="M161 36 Q166 33 170 37" stroke={c} strokeWidth="3.5" strokeLinecap="round" />
       </svg>
     );
   }
-  if (shape === 'Aviator') {
+
+  if (normShape === 'square') {
     return (
-      <svg width="160" height="80" viewBox="0 0 160 80" fill="none">
-        <path d="M13 24 Q14 18 20 18 L70 18 Q78 18 77 32 Q77 54 45 54 Q20 54 13 38 Z" stroke={c} strokeWidth="4.5" fill="rgba(255,255,255,0.5)" />
-        <path d="M147 24 Q146 18 140 18 L90 18 Q82 18 83 32 Q83 54 115 54 Q140 54 147 38 Z" stroke={c} strokeWidth="4.5" fill="rgba(255,255,255,0.5)" />
-        <path d="M77 24 Q80 20 83 24" stroke={c} strokeWidth="4" strokeLinecap="round" fill="none" />
-        <path d="M13 28 Q8 26 4 30" stroke={c} strokeWidth="3.5" strokeLinecap="round" />
-        <path d="M147 28 Q152 26 156 30" stroke={c} strokeWidth="3.5" strokeLinecap="round" />
-        <line x1="13" y1="18" x2="77" y2="18" stroke={c} strokeWidth="2.5" strokeLinecap="round" />
-        <line x1="83" y1="18" x2="147" y2="18" stroke={c} strokeWidth="2.5" strokeLinecap="round" />
+      <svg width="175" height="85" viewBox="0 0 175 85" fill="none">
+        <rect x="14" y="18" width="62" height="48" rx="8" stroke={c} strokeWidth="4.8" fill="rgba(255,255,255,0.6)" />
+        <rect x="99" y="18" width="62" height="48" rx="8" stroke={c} strokeWidth="4.8" fill="rgba(255,255,255,0.6)" />
+        <path d="M76 40 Q87.5 36 99 40" stroke={c} strokeWidth="4" strokeLinecap="round" fill="none" />
+        <path d="M14 32 Q9 29 5 33" stroke={c} strokeWidth="3.5" strokeLinecap="round" />
+        <path d="M161 32 Q166 29 170 33" stroke={c} strokeWidth="3.5" strokeLinecap="round" />
       </svg>
     );
   }
-  // Rectangle / Square default
+
+  if (normShape === 'cateye') {
+    return (
+      <svg width="175" height="85" viewBox="0 0 175 85" fill="none">
+        <path d="M14 46 Q22 18 52 22 Q64 22 76 40 Q64 58 48 56 Q24 54 14 46Z" stroke={c} strokeWidth="4.5" fill="rgba(255,255,255,0.6)" />
+        <path d="M161 46 Q153 18 123 22 Q111 22 99 40 Q111 58 127 56 Q151 54 161 46Z" stroke={c} strokeWidth="4.5" fill="rgba(255,255,255,0.6)" />
+        <path d="M76 41 Q87.5 37 99 41" stroke={c} strokeWidth="4" strokeLinecap="round" fill="none" />
+        <path d="M14 42 Q9 39 5 42" stroke={c} strokeWidth="3.5" strokeLinecap="round" />
+        <path d="M161 42 Q166 39 170 42" stroke={c} strokeWidth="3.5" strokeLinecap="round" />
+      </svg>
+    );
+  }
+
+  if (normShape === 'aviator') {
+    return (
+      <svg width="175" height="85" viewBox="0 0 175 85" fill="none">
+        <path d="M14 26 Q15 20 22 20 L72 20 Q78 20 78 34 Q78 56 46 56 Q20 56 14 40 Z" stroke={c} strokeWidth="4.5" fill="rgba(255,255,255,0.6)" />
+        <path d="M161 26 Q160 20 153 20 L103 20 Q97 20 97 34 Q97 56 129 56 Q155 56 161 40 Z" stroke={c} strokeWidth="4.5" fill="rgba(255,255,255,0.6)" />
+        <path d="M78 26 Q87.5 22 97 26" stroke={c} strokeWidth="4" strokeLinecap="round" fill="none" />
+        <path d="M78 33 Q87.5 29 97 33" stroke={c} strokeWidth="3" strokeLinecap="round" fill="none" />
+        <path d="M14 30 Q9 28 5 32" stroke={c} strokeWidth="3.5" strokeLinecap="round" />
+        <path d="M161 30 Q166 28 170 32" stroke={c} strokeWidth="3.5" strokeLinecap="round" />
+      </svg>
+    );
+  }
+
   return (
-    <svg width="170" height="80" viewBox="0 0 170 80" fill="none">
-      <rect x="14" y="20" width="62" height="40" rx="6" stroke={c} strokeWidth="5" fill="rgba(255,255,255,0.5)" />
-      <rect x="94" y="20" width="62" height="40" rx="6" stroke={c} strokeWidth="5" fill="rgba(255,255,255,0.5)" />
-      <path d="M76 40 Q80 36 94 40" stroke={c} strokeWidth="4" strokeLinecap="round" fill="none" />
-      <path d="M14 35 Q9 32 5 36" stroke={c} strokeWidth="3.5" strokeLinecap="round" />
-      <path d="M156 35 Q161 32 165 36" stroke={c} strokeWidth="3.5" strokeLinecap="round" />
-      <path d="M22 28 Q40 23 52 26" stroke="rgba(255,255,255,0.7)" strokeWidth="2" strokeLinecap="round" />
-      <path d="M102 26 Q120 23 138 28" stroke="rgba(255,255,255,0.7)" strokeWidth="2" strokeLinecap="round" />
+    <svg width="175" height="85" viewBox="0 0 175 85" fill="none">
+      <rect x="14" y="24" width="62" height="37" rx="5" stroke={c} strokeWidth="4.5" fill="rgba(255,255,255,0.6)" />
+      <rect x="99" y="24" width="62" height="37" rx="5" stroke={c} strokeWidth="4.5" fill="rgba(255,255,255,0.6)" />
+      <path d="M76 42 Q87.5 38 99 42" stroke={c} strokeWidth="4" strokeLinecap="round" fill="none" />
+      <path d="M14 36 Q9 33 5 37" stroke={c} strokeWidth="3.5" strokeLinecap="round" />
+      <path d="M161 36 Q166 33 170 37" stroke={c} strokeWidth="3.5" strokeLinecap="round" />
     </svg>
   );
 }

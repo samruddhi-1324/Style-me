@@ -7,10 +7,10 @@ import ProductCard from '@/components/product/ProductCard';
 
 const FILTER_OPTIONS = {
   gender: ['Men', 'Women', 'Unisex', 'Kids'],
-  faceShape: ['Oval', 'Round', 'Square', 'Heart', 'Oblong'],
-  frameColor: ['Black', 'Brown', 'Gold', 'Silver', 'Blue', 'Transparent', 'Green', 'Pink'],
+  frameShape: ['Rectangle', 'Round', 'Cat-Eye', 'Square', 'Aviator', 'Oval'],
+  faceShape: ['Oval', 'Round', 'Square', 'Heart', 'Diamond'],
+  frameColor: ['Black', 'Brown', 'Gold', 'Silver', 'Blue', 'Transparent', 'Green', 'Pink', 'Rose Gold', 'Tortoise'],
   material: ['Acetate', 'Metal', 'TR90'],
-  frameShape: ['Rectangle', 'Round', 'Cat-eye', 'Aviator', 'Square', 'Oval'],
   size: ['Small', 'Medium', 'Large'],
   lensType: ['Basic', 'Blue Light', 'Anti-Glare', 'UV Protection', 'Photochromic', 'Progressive'],
   priceRanges: [
@@ -33,14 +33,16 @@ const SORT_OPTIONS = [
 function ShopContent() {
   const searchParams = useSearchParams();
   const categoryParam = searchParams.get('category') || '';
+  const genderParam = searchParams.get('gender') || searchParams.get('g') || '';
+  const shapeParam = searchParams.get('shape') || searchParams.get('frameShape') || searchParams.get('s') || '';
   const queryParam = searchParams.get('q') || '';
   const sortParam = searchParams.get('sort') || 'popularity';
 
   const [filters, setFilters] = useState({
     category: categoryParam,
-    gender: [] as string[],
+    gender: genderParam ? [genderParam] : ([] as string[]),
     material: [] as string[],
-    frameShape: [] as string[],
+    frameShape: shapeParam ? [shapeParam] : ([] as string[]),
     faceShape: [] as string[],
     frameColor: [] as string[],
     lensType: [] as string[],
@@ -54,8 +56,13 @@ function ShopContent() {
   const ITEMS_PER_PAGE = 9;
 
   useEffect(() => {
-    setFilters((f) => ({ ...f, category: categoryParam }));
-  }, [categoryParam]);
+    setFilters((f) => ({
+      ...f,
+      category: categoryParam,
+      gender: genderParam ? [genderParam] : f.gender,
+      frameShape: shapeParam ? [shapeParam] : f.frameShape,
+    }));
+  }, [categoryParam, genderParam, shapeParam]);
 
   useEffect(() => {
     if (sortParam) setSort(sortParam);
@@ -66,48 +73,111 @@ function ShopContent() {
     setPage(1);
   }, [filters, sort, queryParam]);
 
+  // Canonical Data-Driven Filter Predicate
   const filtered = products.filter((p) => {
-    if (filters.category && p.category.toLowerCase() !== filters.category.toLowerCase()) return false;
-    if (filters.gender.length && !filters.gender.includes(p.gender)) return false;
-    if (filters.material.length && !filters.material.includes(p.material)) return false;
-    if (filters.frameShape.length && !filters.frameShape.includes(p.frameShape)) return false;
-    if (filters.size.length && !filters.size.includes(p.size)) return false;
-    if (filters.priceRange && (p.price < filters.priceRange.min || p.price > filters.priceRange.max)) return false;
-    
-    // Face Shape filter
+    // 1. Category Filter
+    if (filters.category) {
+      const catLower = filters.category.toLowerCase();
+      const pCatLower = p.category.toLowerCase();
+      if (pCatLower !== catLower) {
+        // Special exception for Kids category vs Kids gender compatibility
+        if (!(catLower === 'kids' && p.gender.toLowerCase() === 'kids')) {
+          return false;
+        }
+      }
+    }
+
+    // 2. Gender Filter (Men includes Men + Unisex, Women includes Women + Unisex)
+    if (filters.gender.length) {
+      const matchesGender = filters.gender.some((g) => {
+        const gNorm = g.trim().toLowerCase();
+        const pGen = p.gender.trim().toLowerCase();
+        const pCat = p.category.trim().toLowerCase();
+
+        if (gNorm === 'men') return pGen === 'men' || pGen === 'unisex';
+        if (gNorm === 'women') return pGen === 'women' || pGen === 'unisex';
+        if (gNorm === 'unisex') return pGen === 'unisex';
+        if (gNorm === 'kids') return pGen === 'kids' || pCat === 'kids';
+        return pGen === gNorm;
+      });
+      if (!matchesGender) return false;
+    }
+
+    // 3. Frame Shape Filter (Normalized Case & Punctuation)
+    if (filters.frameShape.length) {
+      const matchesShape = filters.frameShape.some((s) => {
+        const sNorm = s.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+        const pNorm = p.frameShape.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+        return sNorm === pNorm;
+      });
+      if (!matchesShape) return false;
+    }
+
+    // 4. Material Filter
+    if (filters.material.length) {
+      const matchesMat = filters.material.some((m) => p.material.toLowerCase() === m.toLowerCase());
+      if (!matchesMat) return false;
+    }
+
+    // 5. Size Filter
+    if (filters.size.length) {
+      const matchesSize = filters.size.some((sz) => p.size.toLowerCase() === sz.toLowerCase());
+      if (!matchesSize) return false;
+    }
+
+    // 6. Price Range Filter
+    if (filters.priceRange && (p.price < filters.priceRange.min || p.price > filters.priceRange.max)) {
+      return false;
+    }
+
+    // 7. Face Shape Filter
     if (filters.faceShape.length) {
-      const match = p.faceShapes?.some((fs) => filters.faceShape.includes(fs)) || 
-                    (p.fitNote && filters.faceShape.some((fs) => p.fitNote.toLowerCase().includes(fs.toLowerCase())));
+      const match = filters.faceShape.some((fs) => {
+        const fsNorm = fs.toLowerCase();
+        return (
+          p.faceShapes?.some((pfs) => pfs.toLowerCase() === fsNorm) ||
+          (p.fitNote && p.fitNote.toLowerCase().includes(fsNorm)) ||
+          (p.description && p.description.toLowerCase().includes(fsNorm))
+        );
+      });
       if (!match) return false;
     }
 
-    // Frame Color filter
+    // 8. Frame Color Filter
     if (filters.frameColor.length) {
-      const colorMatch = filters.frameColor.some((fc) => 
-        (p.frameColor && p.frameColor.toLowerCase().includes(fc.toLowerCase())) ||
-        p.color.toLowerCase().includes(fc.toLowerCase())
-      );
+      const colorMatch = filters.frameColor.some((fc) => {
+        const fcNorm = fc.toLowerCase();
+        return (
+          (p.frameColor && p.frameColor.toLowerCase().includes(fcNorm)) ||
+          p.color.toLowerCase().includes(fcNorm)
+        );
+      });
       if (!colorMatch) return false;
     }
 
-    // Lens Type filter
+    // 9. Lens Type Filter
     if (filters.lensType.length) {
-      const lensMatch = filters.lensType.some((lt) => 
-        p.badges.some((b) => b.toLowerCase().includes(lt.toLowerCase())) ||
-        p.description.toLowerCase().includes(lt.toLowerCase()) ||
-        p.category.toLowerCase().includes(lt.toLowerCase())
-      );
+      const lensMatch = filters.lensType.some((lt) => {
+        const ltNorm = lt.toLowerCase();
+        return (
+          p.badges.some((b) => b.toLowerCase().includes(ltNorm)) ||
+          p.description.toLowerCase().includes(ltNorm) ||
+          p.category.toLowerCase().includes(ltNorm)
+        );
+      });
       if (!lensMatch) return false;
     }
 
-    // Search Query
+    // 10. Search Query Filter
     if (queryParam) {
       const q = queryParam.toLowerCase();
-      const textMatch = p.name.toLowerCase().includes(q) ||
-                        p.category.toLowerCase().includes(q) ||
-                        p.color.toLowerCase().includes(q) ||
-                        p.material.toLowerCase().includes(q) ||
-                        p.frameShape.toLowerCase().includes(q);
+      const textMatch =
+        p.name.toLowerCase().includes(q) ||
+        p.category.toLowerCase().includes(q) ||
+        p.color.toLowerCase().includes(q) ||
+        p.material.toLowerCase().includes(q) ||
+        p.frameShape.toLowerCase().includes(q) ||
+        p.gender.toLowerCase().includes(q);
       if (!textMatch) return false;
     }
 
@@ -136,21 +206,29 @@ function ShopContent() {
     });
   };
 
-  const clearAll = () => setFilters({
-    category: categoryParam,
-    gender: [],
-    material: [],
-    frameShape: [],
-    faceShape: [],
-    frameColor: [],
-    lensType: [],
-    size: [],
-    priceRange: null,
-  });
+  const clearAll = () =>
+    setFilters({
+      category: '',
+      gender: [],
+      material: [],
+      frameShape: [],
+      faceShape: [],
+      frameColor: [],
+      lensType: [],
+      size: [],
+      priceRange: null,
+    });
 
-  const activeFilterCount = filters.gender.length + filters.material.length + 
-    filters.frameShape.length + filters.faceShape.length + filters.frameColor.length + 
-    filters.lensType.length + filters.size.length + (filters.priceRange ? 1 : 0);
+  const activeFilterCount =
+    (filters.category ? 1 : 0) +
+    filters.gender.length +
+    filters.material.length +
+    filters.frameShape.length +
+    filters.faceShape.length +
+    filters.frameColor.length +
+    filters.lensType.length +
+    filters.size.length +
+    (filters.priceRange ? 1 : 0);
 
   return (
     <div style={{ background: 'var(--color-ivory)', minHeight: '100vh', paddingBottom: '5rem' }}>
@@ -212,9 +290,23 @@ function ShopContent() {
                 ))}
               </FilterSection>
 
+              <FilterSection title="Gender">
+                {FILTER_OPTIONS.gender.map((g) => (
+                  <FilterCheck
+                    key={g} label={g}
+                    checked={filters.gender.some((fg) => fg.toLowerCase() === g.toLowerCase())}
+                    onChange={() => toggle('gender', g)}
+                  />
+                ))}
+              </FilterSection>
+
               <FilterSection title="Frame Shape">
                 {FILTER_OPTIONS.frameShape.map((s) => (
-                  <FilterCheck key={s} label={s} checked={filters.frameShape.includes(s)} onChange={() => toggle('frameShape', s)} />
+                  <FilterCheck
+                    key={s} label={s}
+                    checked={filters.frameShape.some((fs) => fs.toLowerCase().replace(/[^a-z0-9]/g, '') === s.toLowerCase().replace(/[^a-z0-9]/g, ''))}
+                    onChange={() => toggle('frameShape', s)}
+                  />
                 ))}
               </FilterSection>
 
@@ -302,14 +394,22 @@ function ShopContent() {
             {/* Gender */}
             <FilterSection title="Gender">
               {FILTER_OPTIONS.gender.map((g) => (
-                <FilterCheck key={g} label={g} checked={filters.gender.includes(g)} onChange={() => toggle('gender', g)} />
+                <FilterCheck
+                  key={g} label={g}
+                  checked={filters.gender.some((fg) => fg.toLowerCase() === g.toLowerCase())}
+                  onChange={() => toggle('gender', g)}
+                />
               ))}
             </FilterSection>
 
             {/* Frame Shape */}
             <FilterSection title="Frame Shape">
               {FILTER_OPTIONS.frameShape.map((s) => (
-                <FilterCheck key={s} label={s} checked={filters.frameShape.includes(s)} onChange={() => toggle('frameShape', s)} />
+                <FilterCheck
+                  key={s} label={s}
+                  checked={filters.frameShape.some((fs) => fs.toLowerCase().replace(/[^a-z0-9]/g, '') === s.toLowerCase().replace(/[^a-z0-9]/g, ''))}
+                  onChange={() => toggle('frameShape', s)}
+                />
               ))}
             </FilterSection>
 
@@ -395,11 +495,11 @@ function ShopContent() {
             </p>
 
             {sorted.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '4rem 1rem', background: 'white', borderRadius: 'var(--radius-lg)', border: '1px solid rgba(0,0,0,0.06)' }}>
+              <div style={{ textAlign: 'center', padding: '4rem 1.5rem', background: 'white', borderRadius: 'var(--radius-lg)', border: '1px solid rgba(0,0,0,0.06)' }}>
                 <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>👓</div>
                 <h3 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.6rem', color: 'var(--color-plum)', marginBottom: '0.5rem' }}>No frames match your current filters.</h3>
-                <p style={{ color: 'var(--color-sage)', marginBottom: '1.75rem', fontSize: '0.95rem' }}>Try broadening your search or clearing active filters.</p>
-                <button onClick={clearAll} className="btn-primary">Clear All Filters</button>
+                <p style={{ color: 'var(--color-sage)', marginBottom: '1.75rem', fontSize: '0.95rem' }}>Try changing or clearing your active filters to view all available frames.</p>
+                <button onClick={clearAll} className="btn-primary" style={{ display: 'inline-flex', padding: '0.75rem 2rem' }}>Clear All Filters</button>
               </div>
             ) : (
               <>
