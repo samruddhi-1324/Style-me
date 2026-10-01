@@ -7,6 +7,7 @@ import { products } from '@/data/products';
 import { useStore } from '@/lib/store';
 import { gsap } from 'gsap';
 import { PRODUCT_IMAGES, PRODUCT_TINTS } from '@/components/product/ProductImage';
+import { ProductJsonLd, BreadcrumbJsonLd } from '@/components/seo/JsonLd';
 
 interface Props { params: Promise<{ id: string }> }
 
@@ -47,6 +48,14 @@ export default function ProductDetailPage({ params }: Props) {
 
   return (
     <div style={{ background: 'var(--color-ivory)', minHeight: '100vh', paddingBottom: '4rem' }}>
+      <ProductJsonLd product={product!} />
+      <BreadcrumbJsonLd
+        items={[
+          { name: 'Home', url: '/' },
+          { name: product!.category, url: `/shop?category=${product!.category}` },
+          { name: product!.name, url: `/product/${product!.id}` },
+        ]}
+      />
       {/* Breadcrumb */}
       <div className="container" style={{ padding: '1.5rem 2rem 0' }}>
         <div style={{ fontSize: '0.8rem', color: 'var(--color-muted)' }}>

@@ -5,15 +5,28 @@ import Footer from "@/components/layout/Footer";
 import MobileNav from "@/components/layout/MobileNav";
 import CartDrawer from "@/components/cart/CartDrawer";
 import AIAssistant from "@/components/ui/AIAssistant";
+import { OrganizationJsonLd, WebsiteSearchJsonLd } from "@/components/seo/JsonLd";
 
 export const metadata: Metadata = {
-  title: "StyleMe Eyewear — See the Better You",
+  title: {
+    default: "StyleMe Eyewear — See the Better You",
+    template: "%s | StyleMe Eyewear",
+  },
   description: "Premium eyewear with virtual try-on, fit in millimetres, lens thickness preview and transparent pricing. Find your perfect pair.",
   keywords: "eyewear, glasses, sunglasses, prescription glasses, virtual try-on, blue light glasses, India",
+  metadataBase: new URL("https://style-me-virid.vercel.app"),
   openGraph: {
-    title: "StyleMe Eyewear",
+    title: "StyleMe Eyewear — See the Better You",
     description: "See how your glasses will look, fit and feel — before you pay.",
+    url: "https://style-me-virid.vercel.app",
+    siteName: "StyleMe Eyewear",
+    locale: "en_IN",
     type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "StyleMe Eyewear",
+    description: "Premium eyewear with virtual try-on and millimetre fit.",
   },
 };
 
@@ -25,6 +38,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
+        <OrganizationJsonLd />
+        <WebsiteSearchJsonLd />
         <Header />
         <main>{children}</main>
         <Footer />
@@ -35,3 +50,4 @@ export default function RootLayout({
     </html>
   );
 }
+
