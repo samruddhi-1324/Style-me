@@ -1,7 +1,6 @@
 'use client';
-import { useState, useEffect, useRef, Suspense } from 'react';
+import { useState, useRef, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { products } from '@/data/products';
 import { lensTypes, lensIndices, coatings } from '@/data/products';
 import { useStore } from '@/lib/store';
@@ -29,6 +28,7 @@ function LensConfigContent() {
   const [selectedIndex, setSelectedIndex] = useState('1.60');
   const [selectedCoatings, setSelectedCoatings] = useState<string[]>(['anti-glare']);
   const stepRef = useRef<HTMLDivElement>(null);
+  const cartIdCounter = useRef(0);
   const { addToCart, setCartOpen } = useStore();
 
   const product = products.find((p) => p.id === frameParam) || products[0];
@@ -45,8 +45,9 @@ function LensConfigContent() {
   const goPrev = () => { setStep((s) => Math.max(s - 1, 1)); animateStep(); };
 
   const handleAddToCart = () => {
+    cartIdCounter.current += 1;
     addToCart({
-      id: `${product.id}-${Date.now()}`,
+      id: `${product.id}-${cartIdCounter.current}`,
       productId: product.id,
       productName: product.name,
       color: product.color,
@@ -197,7 +198,7 @@ function LensConfigContent() {
                           <div key={field}>
                             <label style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-sage)', display: 'block', marginBottom: '0.3rem', letterSpacing: '0.06em' }}>{label}</label>
                             <select
-                              value={(prescription as any)[`${prefix}${field}`]}
+                              value={(prescription as Record<string, string>)[`${prefix}${field}`]}
                               onChange={(e) => setPrescription((p) => ({ ...p, [`${prefix}${field}`]: e.target.value }))}
                               className="input-field"
                               style={{ appearance: 'none', cursor: 'pointer' }}
@@ -241,7 +242,7 @@ function LensConfigContent() {
                 <div style={{ background: 'var(--color-cream)', borderRadius: 'var(--radius-lg)', padding: '3rem', textAlign: 'center', border: '2px dashed rgba(0,0,0,0.12)' }}>
                   <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📄</div>
                   <h3 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.5rem', color: 'var(--color-plum)', marginBottom: '0.5rem' }}>Upload Prescription Image / PDF</h3>
-                  <p style={{ color: 'var(--color-sage)', marginBottom: '1.5rem' }}>Upload a photo or PDF of your doctor's prescription. We'll extract and verify it for you.</p>
+                  <p style={{ color: 'var(--color-sage)', marginBottom: '1.5rem' }}>Upload a photo or PDF of your doctor&apos;s prescription. We&apos;ll extract and verify it for you.</p>
                   <label className="btn-primary" style={{ cursor: 'pointer' }}>
                     Choose File
                     <input type="file" accept="image/*,.pdf" style={{ display: 'none' }} onChange={() => {

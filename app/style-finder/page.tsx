@@ -258,7 +258,7 @@ export default function StyleFinderPage() {
         {/* STEP 0 — FACE SHAPE (Phase 15: Face detection option) */}
         {step === 0 && (
           <div>
-            <h2 style={{ textAlign: 'center', marginBottom: '0.5rem' }}>What's your face shape?</h2>
+            <h2 style={{ textAlign: 'center', marginBottom: '0.5rem' }}>What&apos;s your face shape?</h2>
             <p style={{ textAlign: 'center', color: 'var(--color-sage)', marginBottom: '1.5rem' }}>Select your face shape manually or use simulated AI detection.</p>
 
             {/* AI Face Shape Scanner Card (Phase 15) */}
@@ -328,7 +328,7 @@ export default function StyleFinderPage() {
         {/* STEP 1 — STYLE */}
         {step === 1 && (
           <div>
-            <h2 style={{ textAlign: 'center', marginBottom: '0.5rem' }}>What's your style preference?</h2>
+            <h2 style={{ textAlign: 'center', marginBottom: '0.5rem' }}>What&apos;s your style preference?</h2>
             <p style={{ textAlign: 'center', color: 'var(--color-sage)', marginBottom: '2.5rem' }}>Select all that resonate with you.</p>
             <div className="finder-style-btns" style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
               {stylePrefs.map((s) => (
@@ -381,7 +381,7 @@ export default function StyleFinderPage() {
         {/* STEP 3 — BUDGET */}
         {step === 3 && (
           <div>
-            <h2 style={{ textAlign: 'center', marginBottom: '0.5rem' }}>What's your budget?</h2>
+            <h2 style={{ textAlign: 'center', marginBottom: '0.5rem' }}>What&apos;s your budget?</h2>
             <p style={{ textAlign: 'center', color: 'var(--color-sage)', marginBottom: '2.5rem' }}>Frame price only. Lens costs are separate.</p>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', maxWidth: '520px', margin: '0 auto' }}>
               {budgets.map((b) => (

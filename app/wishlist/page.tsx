@@ -5,7 +5,7 @@ import { products } from '@/data/products';
 import ProductCard from '@/components/product/ProductCard';
 
 export default function WishlistPage() {
-  const { wishlist, toggleWishlist } = useStore();
+  const { wishlist } = useStore();
   const wishlisted = products.filter((p) => wishlist.includes(p.id));
 
   return (

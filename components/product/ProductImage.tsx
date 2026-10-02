@@ -2,18 +2,69 @@
 import Image from 'next/image';
 import { useState } from 'react';
 
-/** Map of product IDs → public photo image paths ONLY when photo matches frame shape */
+/** Map of product IDs → public image paths, grouped by frame shape */
 export const PRODUCT_IMAGES: Record<string, string> = {
-  // Real generated photos matching exact frame shape
-  'frame-002': '/assets/products/eyeglasses/raven-black.jpg',    // Raven Black (Round)
-  'frame-004': '/assets/products/eyeglasses/maple-brown.jpg',    // Maple Brown (Aviator)
-  'frame-006': '/assets/products/eyeglasses/crystal-clear.jpg',  // Crystal Clear (Round)
-  'frame-008': '/assets/products/eyeglasses/blush-pink.jpg',     // Blush Pink (Cat-Eye)
-  'frame-018': '/assets/products/eyeglasses/sunrise-rose.jpg',   // Sunrise Rose (Cat-Eye)
-  'frame-015': '/assets/products/eyeglasses/raven-black.jpg',    // Night Owl (Round)
-  'frame-019': '/assets/products/eyeglasses/crystal-clear.jpg',  // Heritage Round (Round)
-  'frame-024': '/assets/products/eyeglasses/crystal-clear.jpg',  // Tiny Tot (Round)
+  // ── Eyeglasses ──────────────────────────────────────────────────────────────
+  'frame-001': '/assets/products/eyeglasses/willow-tortoise.jpg',   // Willow Tortoise  (Rectangle, Tortoise)
+  'frame-002': '/assets/products/eyeglasses/raven-black.jpg',       // Raven Black      (Round, Black)
+  'frame-003': '/assets/products/eyeglasses/azure-blue.jpg',        // Azure Blue       (Rectangle, Blue)
+  'frame-004': '/assets/products/eyeglasses/maple-brown.jpg',       // Maple Brown      (Aviator, Brown)
+  'frame-005': '/assets/products/eyeglasses/olive-green.jpg',       // Olive Green      (Cat-Eye, Green)
+  'frame-006': '/assets/products/eyeglasses/crystal-clear.jpg',     // Crystal Clear    (Round, Clear)
+  'frame-007': '/assets/products/eyeglasses/graphite-grey.jpg',     // Graphite Grey    (Rectangle, Grey)
+  'frame-008': '/assets/products/eyeglasses/blush-pink.jpg',        // Blush Pink       (Cat-Eye, Pink)
+  'frame-018': '/assets/products/eyeglasses/sunrise-rose.jpg',      // Sunrise Rose     (Cat-Eye, Rose Gold)
+  'frame-019': '/assets/products/eyeglasses/heritage-honey.jpg',    // Heritage Round   (Round, Honey)
+  'frame-020': '/assets/products/eyeglasses/minimal-silver.jpg',    // Minimal Wire     (Rectangle, Silver)
+  'frame-023': '/assets/products/eyeglasses/pebble-grey.jpg',       // Pebble Oval      (Oval, Grey)
+
+  // ── Sunglasses ──────────────────────────────────────────────────────────────
+  'frame-009': '/assets/products/sunglasses/square-frames.jpg',     // Cobalt Shield    (Square, Blue)
+  'frame-010': '/assets/products/sunglasses/aviator-frames.jpg',    // Desert Sand      (Aviator, Sand)
+  'frame-011': '/assets/products/sunglasses/noir-black.jpg',        // Noir Oversize    (Cat-Eye, Black)
+  'frame-012': '/assets/products/sunglasses/terracotta-cat.jpg',    // Terracotta Cat   (Cat-Eye, Terracotta)
+  'frame-021': '/assets/products/sunglasses/square-frames.jpg',     // Bold Square      (Square, Black)
+
+  // ── Blue-light ──────────────────────────────────────────────────────────────
+  'frame-013': '/assets/products/bluelight/bluelight-frames.jpg',   // Focus Pro        (Rectangle, Black)
+  'frame-014': '/assets/products/bluelight/scholar-gold.jpg',       // Scholar Thin     (Rectangle, Gold)
+  'frame-015': '/assets/products/bluelight/night-owl-amber.jpg',    // Night Owl        (Round, Amber)
+  'frame-022': '/assets/products/bluelight/forest-green.jpg',       // Forest Green     (Rectangle, Green)
+
+  // ── Kids ────────────────────────────────────────────────────────────────────
+  'frame-016': '/assets/products/kids/kids-frames.jpg',             // Sparky           (Rectangle, Red)
+  'frame-017': '/assets/products/kids/mini-scholar-blue.jpg',       // Mini Scholar     (Rectangle, Blue)
+  'frame-024': '/assets/products/kids/tiny-tot-purple.jpg',         // Tiny Tot         (Round, Purple)
 };
+
+/** Transparent PNG overlays for Virtual Try-On mapped 1:1 to every product ID */
+export const FRAME_OVERLAYS: Record<string, string> = {
+  'frame-001': '/assets/frames/frame-001.png',
+  'frame-002': '/assets/frames/frame-002.png',
+  'frame-003': '/assets/frames/frame-003.png',
+  'frame-004': '/assets/frames/frame-004.png',
+  'frame-005': '/assets/frames/frame-005.png',
+  'frame-006': '/assets/frames/frame-006.png',
+  'frame-007': '/assets/frames/frame-007.png',
+  'frame-008': '/assets/frames/frame-008.png',
+  'frame-009': '/assets/frames/frame-009.png',
+  'frame-010': '/assets/frames/frame-010.png',
+  'frame-011': '/assets/frames/frame-011.png',
+  'frame-012': '/assets/frames/frame-012.png',
+  'frame-013': '/assets/frames/frame-013.png',
+  'frame-014': '/assets/frames/frame-014.png',
+  'frame-015': '/assets/frames/frame-015.png',
+  'frame-016': '/assets/frames/frame-016.png',
+  'frame-017': '/assets/frames/frame-017.png',
+  'frame-018': '/assets/frames/frame-018.png',
+  'frame-019': '/assets/frames/frame-019.png',
+  'frame-020': '/assets/frames/frame-020.png',
+  'frame-021': '/assets/frames/frame-021.png',
+  'frame-022': '/assets/frames/frame-022.png',
+  'frame-023': '/assets/frames/frame-023.png',
+  'frame-024': '/assets/frames/frame-024.png',
+};
+
 
 /** Per-product color tint overlay to visually differentiate reused base images */
 export const PRODUCT_TINTS: Record<string, string> = {

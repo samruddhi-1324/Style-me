@@ -113,7 +113,7 @@ export default function HomePage() {
           {/* Left */}
           <div className="hero-content">
             <span className="tag" style={{ display: 'block', marginBottom: '1rem' }}>
-              ✦ India's premium eyewear store
+              ✦ India&apos;s premium eyewear store
             </span>
 
             <h1 ref={headingRef} style={{ marginBottom: '1.5rem', lineHeight: 1.1 }}>
@@ -401,7 +401,7 @@ export default function HomePage() {
                     <div style={{ flex: 1, height: '8px', background: 'var(--color-sand)', borderRadius: '4px', overflow: 'hidden' }}>
                       <div style={{ width: `${w}%`, height: '100%', background: active ? 'var(--color-terracotta)' : 'var(--color-sage)', borderRadius: '4px', transition: 'width 0.5s ease', opacity: active ? 1 : 0.5 }} />
                     </div>
-                    <span style={{ fontSize: '0.72rem', color: 'var(--color-muted)', width: '38px' }}>{mm}mm</span>
+                    <span style={{ fontSize: '0.72rem', color: 'var(--color-muted)', width: '64px' }}>{label} ({mm}mm)</span>
                   </div>
                 ))}
               </div>
@@ -414,7 +414,7 @@ export default function HomePage() {
                 <div style={{ width: '48px', height: '48px', background: 'rgba(36,21,38,0.08)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem' }}>💡</div>
                 <div>
                   <h4>Transparent Pricing</h4>
-                  <p style={{ fontSize: '0.8rem', color: 'var(--color-sage)' }}>Know exactly what you're paying for.</p>
+                  <p style={{ fontSize: '0.8rem', color: 'var(--color-sage)' }}>Know exactly what you&apos;re paying for.</p>
                 </div>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>

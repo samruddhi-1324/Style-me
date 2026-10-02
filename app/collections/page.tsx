@@ -1,6 +1,5 @@
 'use client';
 import Link from 'next/link';
-import { categories } from '@/data/products';
 
 const collections = [
   {
@@ -233,7 +232,7 @@ export default function CollectionsPage() {
               Not sure where to start?
             </h2>
             <p style={{ color: 'rgba(255,255,255,0.65)', lineHeight: 1.8, marginBottom: '2rem', fontSize: '1rem' }}>
-              Our StyleFinder quiz analyzes your face shape, style preferences and lifestyle to recommend frames you'll genuinely love.
+              Our StyleFinder quiz analyzes your face shape, style preferences and lifestyle to recommend frames you&apos;ll genuinely love.
             </p>
             <div style={{ display: 'flex', gap: '1rem' }}>
               <Link href="/style-finder" className="btn-primary">Take the Quiz →</Link>

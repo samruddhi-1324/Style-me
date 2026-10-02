@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { notFound, useRouter } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { products } from '@/data/products';
@@ -19,8 +19,7 @@ export default function ProductDetailPage({ params }: Props) {
   const [activeTab, setActiveTab] = useState('details');
   const galleryRef = useRef<HTMLDivElement>(null);
   const infoRef = useRef<HTMLDivElement>(null);
-  const { toggleWishlist, isWishlisted, setCartOpen } = useStore();
-  const router = useRouter();
+  const { toggleWishlist, isWishlisted } = useStore();
 
   useEffect(() => {
     params.then((p) => setProductId(p.id));

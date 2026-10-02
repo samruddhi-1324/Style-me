@@ -11,7 +11,7 @@ export default function CheckoutPage() {
   const [shipping, setShipping] = useState('standard');
   const [payment, setPayment] = useState('upi');
   const [success, setSuccess] = useState(false);
-  const [orderId] = useState(`SM${Date.now().toString().slice(-8)}`);
+  const [orderId] = useState(() => `SM${Date.now().toString().slice(-8)}`);
 
   const total = cartTotal();
   const shippingCost = shipping === 'express' ? 99 : (total >= 999 ? 0 : 99);

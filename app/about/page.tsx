@@ -81,10 +81,10 @@ export default function AboutPage() {
           <div>
             <p style={{ fontSize: '0.75rem', letterSpacing: '0.25em', color: 'var(--color-terracotta)', fontWeight: 700, textTransform: 'uppercase', marginBottom: '1rem' }}>Our Mission</p>
             <h2 style={{ fontSize: '2.5rem', marginBottom: '1.5rem', lineHeight: 1.2 }}>
-              See the world clearly, in a frame that's truly yours.
+              See the world clearly, in a frame that&apos;s truly yours.
             </h2>
             <p style={{ color: 'var(--color-sage)', lineHeight: 1.9, fontSize: '1.05rem', marginBottom: '1.5rem' }}>
-              We started StyleMe because the traditional optical industry was broken. Inflated markups, confusing jargon, and a complete lack of transparency had left millions of Indians paying too much for glasses that didn't fit.
+              We started StyleMe because the traditional optical industry was broken. Inflated markups, confusing jargon, and a complete lack of transparency had left millions of Indians paying too much for glasses that didn&apos;t fit.
             </p>
             <p style={{ color: 'var(--color-sage)', lineHeight: 1.9, fontSize: '1.05rem', marginBottom: '2rem' }}>
               We built StyleMe with radical transparency as our north star — every component of every pair priced and explained, so you can make an informed choice. No pressure. No hidden fees.

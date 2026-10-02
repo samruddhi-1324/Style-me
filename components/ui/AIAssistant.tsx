@@ -39,7 +39,8 @@ export default function AIAssistant() {
 
   const handleSend = async (textToSend: string) => {
     if (!textToSend.trim() || loading) return;
-    const userMsg: ChatMessage = { id: Date.now().toString(), role: 'user', text: textToSend };
+    const userMsgId = `usr-${messages.length + 1}`;
+    const userMsg: ChatMessage = { id: userMsgId, role: 'user', text: textToSend };
     
     setMessages((prev) => [...prev, userMsg]);
     setInput('');
@@ -48,16 +49,16 @@ export default function AIAssistant() {
     try {
       const response = await AiService.generateAssistantResponse(textToSend);
       const aiMsg: ChatMessage = {
-        id: (Date.now() + 1).toString(),
+        id: `ai-${messages.length + 2}`,
         role: 'ai',
         text: response.text,
         recommendedProducts: response.recommendedProducts,
       };
       setMessages((prev) => [...prev, aiMsg]);
-    } catch (err) {
+    } catch {
       setMessages((prev) => [
         ...prev,
-        { id: (Date.now() + 1).toString(), role: 'ai', text: 'I am sorry, something went wrong. Please try again!' },
+        { id: `err-${messages.length + 2}`, role: 'ai', text: 'I am sorry, something went wrong. Please try again!' },
       ]);
     } finally {
       setLoading(false);

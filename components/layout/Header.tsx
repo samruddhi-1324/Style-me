@@ -1,6 +1,7 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useSyncExternalStore } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useStore } from '@/lib/store';
 import { gsap } from 'gsap';
 
@@ -12,8 +13,14 @@ const navLinks = [
   { label: 'Style Finder', href: '/style-finder' },
 ];
 
+const emptySubscribe = () => () => {};
+function useHasMounted() {
+  return useSyncExternalStore(emptySubscribe, () => true, () => false);
+}
+
 export default function Header() {
-  const [mounted, setMounted] = useState(false);
+  const router = useRouter();
+  const mounted = useHasMounted();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -22,10 +29,6 @@ export default function Header() {
   const wishlist = useStore((s) => s.wishlist);
   const setCartOpen = useStore((s) => s.setCartOpen);
   const headerRef = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     gsap.fromTo(headerRef.current, { y: -80, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: 'power3.out', delay: 0.2 });
@@ -37,18 +40,17 @@ export default function Header() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // Search history state
-  const [recentSearches, setRecentSearches] = useState<string[]>([]);
-  const searchInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
+  // Search history state with lazy initializer
+  const [recentSearches, setRecentSearches] = useState<string[]>(() => {
+    if (typeof window === 'undefined') return [];
     try {
       const saved = localStorage.getItem('styleme_recent_searches');
-      if (saved) setRecentSearches(JSON.parse(saved));
-    } catch (e) {
-      /* ignore */
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
     }
-  }, []);
+  });
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const addRecentSearch = (term: string) => {
     if (!term.trim()) return;
@@ -56,7 +58,7 @@ export default function Header() {
     setRecentSearches(updated);
     try {
       localStorage.setItem('styleme_recent_searches', JSON.stringify(updated));
-    } catch (e) {
+    } catch {
       /* ignore */
     }
   };
@@ -111,7 +113,7 @@ export default function Header() {
     if (parsed.color) params.set('color', parsed.color);
     if (parsed.category) params.set('category', parsed.category);
     setSearchOpen(false);
-    window.location.href = `/shop?${params.toString()}`;
+    router.push(`/shop?${params.toString()}`);
   };
 
   return (
@@ -243,171 +245,101 @@ export default function Header() {
               <div style={{ position: 'relative', marginBottom: '1rem' }}>
                 <input
                   ref={searchInputRef}
-                  autoFocus
                   type="text"
-                  placeholder='Try natural search: "black round glasses under ₹3000"'
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="input-field"
-                  style={{ paddingLeft: '3rem', paddingRight: '2.5rem', height: '48px', fontSize: '0.95rem' }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && searchQuery.trim()) executeSearch(searchQuery);
-                    if (e.key === 'Escape') setSearchOpen(false);
+                  onKeyDown={(e) => e.key === 'Enter' && executeSearch(searchQuery)}
+                  placeholder="Search by frame name, color, shape, or try 'blue light under ₹3000'..."
+                  autoFocus
+                  style={{
+                    width: '100%', padding: '0.85rem 1.25rem 0.85rem 2.75rem',
+                    borderRadius: '50px', border: '1.5px solid var(--color-forest)',
+                    background: 'white', fontSize: '0.95rem', outline: 'none',
+                    fontFamily: 'Inter, sans-serif', boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
                   }}
                 />
-                <svg width="18" height="18" fill="none" stroke="var(--color-sage)" strokeWidth="1.8" viewBox="0 0 24 24"
+                <svg width="18" height="18" fill="none" stroke="var(--color-sage)" strokeWidth="2" viewBox="0 0 24 24"
                   style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)' }}>
                   <circle cx="11" cy="11" r="7" /><path d="M21 21l-4.35-4.35" strokeLinecap="round" />
                 </svg>
                 {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery('')}
-                    style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-muted)', fontSize: '1rem' }}
-                  >✕</button>
+                  <button onClick={() => setSearchQuery('')}
+                    style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-muted)', fontSize: '1.1rem' }}>
+                    ✕
+                  </button>
                 )}
               </div>
 
-              {/* Natural Language Interpreted Filters Badge (Phase 17) */}
+              {/* Natural Language Parsed Query Preview */}
               {hasParsedCriteria && (
-                <div style={{
-                  background: 'linear-gradient(135deg, rgba(32,56,46,0.06), rgba(198,106,85,0.06))',
-                  border: '1px solid rgba(32,56,46,0.15)',
-                  borderRadius: 'var(--radius-md)', padding: '0.6rem 0.875rem',
-                  marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap',
-                }}>
-                  <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-forest)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                    ✨ Interpreted Filters:
-                  </span>
-                  {parsedQuery?.category && <span className="badge badge-sage">Category: {parsedQuery.category}</span>}
-                  {parsedQuery?.shape && <span className="badge badge-sage">Shape: {parsedQuery.shape}</span>}
-                  {parsedQuery?.color && <span className="badge badge-sage">Color: {parsedQuery.color}</span>}
-                  {parsedQuery?.price && <span className="badge badge-sage">Max Price: ₹{parsedQuery.price.toLocaleString('en-IN')}</span>}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', flexWrap: 'wrap', background: 'rgba(32,56,46,0.05)', padding: '0.6rem 1rem', borderRadius: '12px' }}>
+                  <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--color-forest)' }}>🔍 AI Parsed Filters:</span>
+                  {parsedQuery.category && <span className="badge badge-sage" style={{ fontSize: '0.7rem' }}>Category: {parsedQuery.category}</span>}
+                  {parsedQuery.shape && <span className="badge badge-sage" style={{ fontSize: '0.7rem' }}>Shape: {parsedQuery.shape}</span>}
+                  {parsedQuery.color && <span className="badge badge-sage" style={{ fontSize: '0.7rem' }}>Color: {parsedQuery.color}</span>}
+                  {parsedQuery.price && <span className="badge badge-coral" style={{ fontSize: '0.7rem' }}>Max Price: ₹{parsedQuery.price}</span>}
                 </div>
               )}
 
-              {/* Search Suggestions & History (Phase 22) */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.25rem', paddingTop: '0.5rem' }}>
-                {/* Popular searches */}
+              {/* Recent Searches */}
+              {recentSearches.length > 0 && !searchQuery && (
                 <div>
-                  <p style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-sage)', marginBottom: '0.6rem' }}>
-                    Popular Searches
-                  </p>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
-                    {[
-                      'Round glasses',
-                      'Black frames',
-                      'Blue light',
-                      'Sunglasses',
-                      'Frames under ₹3000',
-                      'Cat-Eye',
-                    ].map((tag) => (
-                      <button
-                        key={tag}
-                        onClick={() => { setSearchQuery(tag); executeSearch(tag); }}
-                        style={{
-                          background: 'white', border: '1px solid rgba(0,0,0,0.08)',
-                          borderRadius: '50px', padding: '0.35rem 0.75rem', fontSize: '0.78rem',
-                          color: 'var(--color-espresso)', cursor: 'pointer', transition: 'all 0.2s',
-                          fontFamily: 'Inter, sans-serif',
-                        }}
-                        onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--color-forest)'; (e.currentTarget as HTMLElement).style.color = 'var(--color-forest)'; }}
-                        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'rgba(0,0,0,0.08)'; (e.currentTarget as HTMLElement).style.color = 'var(--color-espresso)'; }}
-                      >
-                        {tag}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-sage)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Recent Searches</span>
+                    <button onClick={() => { setRecentSearches([]); localStorage.removeItem('styleme_recent_searches'); }} style={{ fontSize: '0.72rem', color: 'var(--color-terracotta)', background: 'none', border: 'none', cursor: 'pointer' }}>Clear</button>
+                  </div>
+                  <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                    {recentSearches.map((term) => (
+                      <button key={term} onClick={() => executeSearch(term)} style={{ padding: '0.35rem 0.75rem', borderRadius: '50px', background: 'white', border: '1px solid rgba(0,0,0,0.1)', fontSize: '0.78rem', cursor: 'pointer', color: 'var(--color-espresso)' }}>
+                        {term}
                       </button>
                     ))}
                   </div>
                 </div>
-
-                {/* Recent Searches */}
-                {recentSearches.length > 0 && (
-                  <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
-                      <p style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--color-sage)' }}>
-                        Recent Searches
-                      </p>
-                      <button
-                        onClick={() => { setRecentSearches([]); localStorage.removeItem('styleme_recent_searches'); }}
-                        style={{ background: 'none', border: 'none', fontSize: '0.7rem', color: 'var(--color-muted)', cursor: 'pointer' }}
-                      >Clear</button>
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-                      {recentSearches.map((term) => (
-                        <button
-                          key={term}
-                          onClick={() => { setSearchQuery(term); executeSearch(term); }}
-                          style={{
-                            textAlign: 'left', background: 'none', border: 'none',
-                            padding: '0.3rem 0', fontSize: '0.82rem', color: 'var(--color-plum)',
-                            cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem',
-                          }}
-                        >
-                          <span style={{ color: 'var(--color-muted)' }}>🕒</span> {term}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
+              )}
             </div>
           </div>
         )}
 
-        {/* Mobile drawer menu */}
+        {/* Mobile Fullscreen Menu Drawer */}
         {menuOpen && (
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-              background: 'rgba(248,245,239,0.98)', backdropFilter: 'blur(20px)',
-              zIndex: 200, padding: '1.5rem 1.5rem',
-              display: 'flex', flexDirection: 'column',
-              overflowY: 'auto',
-            }}
-          >
-            {/* Close */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-              <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.55rem', fontWeight: 600, color: 'var(--color-plum)' }}>
+          <div style={{
+            position: 'fixed', inset: 0, zIndex: 200, background: 'var(--color-ivory)',
+            padding: '2rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem',
+            overflowY: 'auto',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '1.6rem', fontWeight: 600, color: 'var(--color-plum)' }}>
                 Style<span style={{ color: 'var(--color-terracotta)' }}>Me</span>
               </span>
-              <button onClick={() => setMenuOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.5rem', color: 'var(--color-espresso)' }}>✕</button>
+              <button onClick={() => setMenuOpen(false)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: 'var(--color-espresso)' }}>
+                ✕
+              </button>
             </div>
 
-            {/* Nav links */}
-            {navLinks.map((link) => (
-              <Link
-                key={link.label}
-                href={link.href}
-                onClick={() => setMenuOpen(false)}
-                style={{
-                  display: 'block', padding: '1.1rem 0',
-                  fontSize: '1.3rem', fontWeight: 500,
-                  borderBottom: '1px solid rgba(0,0,0,0.06)',
-                  color: 'var(--color-espresso)',
-                  fontFamily: "'Cormorant Garamond', serif",
-                }}
-              >{link.label}</Link>
-            ))}
+            <nav style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              {navLinks.map((link) => (
+                <Link
+                  key={link.label}
+                  href={link.href}
+                  onClick={() => setMenuOpen(false)}
+                  style={{
+                    fontSize: '1.25rem', fontFamily: "'Cormorant Garamond', serif",
+                    fontWeight: 600, color: 'var(--color-plum)', textDecoration: 'none',
+                    borderBottom: '1px solid rgba(0,0,0,0.06)', paddingBottom: '0.75rem',
+                  }}
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
 
-            <Link href="/shop?category=Blue-light" onClick={() => setMenuOpen(false)} style={{ display: 'block', padding: '1.1rem 0', fontSize: '1.3rem', fontWeight: 500, borderBottom: '1px solid rgba(0,0,0,0.06)', color: 'var(--color-espresso)', fontFamily: "'Cormorant Garamond', serif" }}>Blue-light</Link>
-            <Link href="/shop?category=Kids" onClick={() => setMenuOpen(false)} style={{ display: 'block', padding: '1.1rem 0', fontSize: '1.3rem', fontWeight: 500, borderBottom: '1px solid rgba(0,0,0,0.06)', color: 'var(--color-espresso)', fontFamily: "'Cormorant Garamond', serif" }}>Kids</Link>
-            <Link href="/about" onClick={() => setMenuOpen(false)} style={{ display: 'block', padding: '1.1rem 0', fontSize: '1.3rem', fontWeight: 500, borderBottom: '1px solid rgba(0,0,0,0.06)', color: 'var(--color-espresso)', fontFamily: "'Cormorant Garamond', serif" }}>About</Link>
-
-            <div style={{ display: 'flex', gap: '0.875rem', marginTop: '2rem' }}>
-              <Link href="/account" className="btn-outline" onClick={() => setMenuOpen(false)} style={{ flex: 1, justifyContent: 'center', fontSize: '0.85rem' }}>
-                👤 Account
+            <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <Link href="/account" onClick={() => setMenuOpen(false)} className="btn-outline" style={{ justifyContent: 'center' }}>
+                My Account
               </Link>
-              <Link href="/wishlist" className="btn-secondary" onClick={() => setMenuOpen(false)} style={{ flex: 1, justifyContent: 'center', fontSize: '0.85rem' }}>
-                ❤️ Wishlist {wishlist.length > 0 ? `(${wishlist.length})` : ''}
-              </Link>
-            </div>
-
-            {/* Promo card */}
-            <div style={{ marginTop: '2rem', background: 'var(--color-cream)', borderRadius: 'var(--radius-lg)', padding: '1.25rem', border: '1px solid rgba(0,0,0,0.06)' }}>
-              <p style={{ fontWeight: 700, color: 'var(--color-plum)', marginBottom: '0.4rem' }}>✨ New: StyleFinder™</p>
-              <p style={{ fontSize: '0.82rem', color: 'var(--color-sage)', marginBottom: '0.875rem' }}>Answer 4 questions, find your perfect frame.</p>
-              <Link href="/style-finder" className="btn-primary" onClick={() => setMenuOpen(false)} style={{ fontSize: '0.8rem', padding: '0.6rem 1.25rem' }}>
-                Take the quiz →
+              <Link href="/wishlist" onClick={() => setMenuOpen(false)} className="btn-secondary" style={{ justifyContent: 'center' }}>
+                Wishlist ({mounted ? wishlist.length : 0})
               </Link>
             </div>
           </div>
@@ -416,4 +348,3 @@ export default function Header() {
     </>
   );
 }
-

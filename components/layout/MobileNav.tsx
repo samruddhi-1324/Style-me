@@ -1,8 +1,17 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useStore } from '@/lib/store';
+
+const emptySubscribe = () => () => {};
+function useHasMounted() {
+  return useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false
+  );
+}
 
 const navItems = [
   {
@@ -29,13 +38,9 @@ const navItems = [
 ];
 
 export default function MobileNav() {
-  const [mounted, setMounted] = useState(false);
+  const mounted = useHasMounted();
   const pathname = usePathname();
   const cartCount = useStore((s) => s.cartCount());
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   return (
     <nav style={{

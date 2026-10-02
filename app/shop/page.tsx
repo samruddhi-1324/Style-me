@@ -1,8 +1,8 @@
 'use client';
-import { useState, useEffect, Suspense } from 'react';
+import { useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { products, Product } from '@/data/products';
+import { products } from '@/data/products';
 import ProductCard from '@/components/product/ProductCard';
 
 const FILTER_OPTIONS = {
@@ -55,23 +55,21 @@ function ShopContent() {
   const [page, setPage] = useState(1);
   const ITEMS_PER_PAGE = 9;
 
-  useEffect(() => {
+  // React pattern to sync state with search params changes during render without useEffect
+  const [prevParamsKey, setPrevParamsKey] = useState('');
+  const currentParamsKey = `${categoryParam}|${genderParam}|${shapeParam}|${sortParam}|${queryParam}`;
+
+  if (currentParamsKey !== prevParamsKey) {
+    setPrevParamsKey(currentParamsKey);
     setFilters((f) => ({
       ...f,
       category: categoryParam,
       gender: genderParam ? [genderParam] : f.gender,
       frameShape: shapeParam ? [shapeParam] : f.frameShape,
     }));
-  }, [categoryParam, genderParam, shapeParam]);
-
-  useEffect(() => {
     if (sortParam) setSort(sortParam);
-  }, [sortParam]);
-
-  // Reset page when filters change
-  useEffect(() => {
     setPage(1);
-  }, [filters, sort, queryParam]);
+  }
 
   // Canonical Data-Driven Filter Predicate
   const filtered = products.filter((p) => {
