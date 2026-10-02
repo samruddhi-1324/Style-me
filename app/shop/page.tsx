@@ -141,14 +141,28 @@ function ShopContent() {
       if (!match) return false;
     }
 
-    // 8. Frame Color Filter
+    // 8. Frame Color Filter (Supports exact match, substring, and color family synonyms)
     if (filters.frameColor.length) {
       const colorMatch = filters.frameColor.some((fc) => {
         const fcNorm = fc.toLowerCase();
-        return (
-          (p.frameColor && p.frameColor.toLowerCase().includes(fcNorm)) ||
-          p.color.toLowerCase().includes(fcNorm)
-        );
+        const pCol = p.color.toLowerCase();
+        const pFrameCol = (p.frameColor || '').toLowerCase();
+        const combined = `${pCol} ${pFrameCol}`;
+
+        if (combined.includes(fcNorm) || fcNorm.includes(pCol)) return true;
+
+        if (fcNorm === 'transparent' || fcNorm === 'clear') return combined.includes('clear') || combined.includes('transparent');
+        if (fcNorm === 'black') return combined.includes('black') || combined.includes('noir') || combined.includes('graphite') || combined.includes('raven');
+        if (fcNorm === 'brown') return combined.includes('brown') || combined.includes('tortoise') || combined.includes('honey') || combined.includes('amber') || combined.includes('sand');
+        if (fcNorm === 'tortoise') return combined.includes('tortoise') || combined.includes('brown');
+        if (fcNorm === 'pink') return combined.includes('pink') || combined.includes('blush') || combined.includes('rose');
+        if (fcNorm === 'rose gold') return combined.includes('rose') || combined.includes('gold');
+        if (fcNorm === 'gold') return combined.includes('gold') || combined.includes('sand') || combined.includes('honey');
+        if (fcNorm === 'silver' || fcNorm === 'grey') return combined.includes('silver') || combined.includes('grey') || combined.includes('graphite');
+        if (fcNorm === 'blue') return combined.includes('blue') || combined.includes('cobalt') || combined.includes('azure');
+        if (fcNorm === 'green') return combined.includes('green') || combined.includes('olive') || combined.includes('forest');
+
+        return false;
       });
       if (!colorMatch) return false;
     }

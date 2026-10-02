@@ -163,12 +163,29 @@ function TryOnContent() {
       if (sNorm !== pNorm) return false;
     }
 
-    // 4. Colour — substring match on color name
+    // 4. Colour — substring & synonym match on color name
     if (filters.color !== 'All') {
       const cNorm = filters.color.toLowerCase();
       const pColor = p.color.toLowerCase();
       const pFrameColor = (p.frameColor || '').toLowerCase();
-      if (!pColor.includes(cNorm) && !pFrameColor.includes(cNorm)) return false;
+      const combined = `${pColor} ${pFrameColor}`;
+
+      let match = combined.includes(cNorm) || cNorm.includes(pColor);
+
+      if (!match) {
+        if (cNorm === 'transparent' || cNorm === 'clear') match = combined.includes('clear') || combined.includes('transparent');
+        else if (cNorm === 'black') match = combined.includes('black') || combined.includes('noir') || combined.includes('graphite') || combined.includes('raven');
+        else if (cNorm === 'brown') match = combined.includes('brown') || combined.includes('tortoise') || combined.includes('honey') || combined.includes('amber') || combined.includes('sand');
+        else if (cNorm === 'tortoise') match = combined.includes('tortoise') || combined.includes('brown');
+        else if (cNorm === 'pink') match = combined.includes('pink') || combined.includes('blush') || combined.includes('rose');
+        else if (cNorm === 'rose gold') match = combined.includes('rose') || combined.includes('gold');
+        else if (cNorm === 'gold') match = combined.includes('gold') || combined.includes('sand') || combined.includes('honey');
+        else if (cNorm === 'silver' || cNorm === 'grey') match = combined.includes('silver') || combined.includes('grey') || combined.includes('graphite');
+        else if (cNorm === 'blue') match = combined.includes('blue') || combined.includes('cobalt') || combined.includes('azure');
+        else if (cNorm === 'green') match = combined.includes('green') || combined.includes('olive') || combined.includes('forest');
+      }
+
+      if (!match) return false;
     }
 
     // 5. Material — exact match

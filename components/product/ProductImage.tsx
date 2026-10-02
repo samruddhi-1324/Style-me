@@ -22,8 +22,10 @@ export const PRODUCT_IMAGES: Record<string, string> = {
   'frame-009': '/assets/products/sunglasses/square-frames.jpg',     // Cobalt Shield    (Square, Blue)
   'frame-010': '/assets/products/sunglasses/aviator-frames.jpg',    // Desert Sand      (Aviator, Sand)
   'frame-011': '/assets/products/sunglasses/noir-black.jpg',        // Noir Oversize    (Cat-Eye, Black)
-  'frame-012': '/assets/products/sunglasses/terracotta-cat.jpg',    // Terracotta Cat   (Cat-Eye, Terracotta)
-  'frame-021': '/assets/products/sunglasses/square-frames.jpg',     // Bold Square      (Square, Black)
+  'frame-012': '/assets/products/sunglasses/terracotta-cat.jpg',    // Terracotta Round (Round, Terracotta)
+  'frame-021': '/assets/products/sunglasses/square-frames.jpg',     // Bold Rectangle   (Rectangle, Black)
+  'frame-025': '/assets/products/sunglasses/terracotta-cat.jpg',    // Amber Luxe Oval  (Oval, Amber)
+  'frame-026': '/assets/products/sunglasses/square-frames.jpg',     // Steel Matrix     (Square, Silver)
 
   // ── Blue-light ──────────────────────────────────────────────────────────────
   'frame-013': '/assets/products/bluelight/bluelight-frames.jpg',   // Focus Pro        (Rectangle, Black)
@@ -63,6 +65,8 @@ export const FRAME_OVERLAYS: Record<string, string> = {
   'frame-022': '/assets/frames/frame-022.png',
   'frame-023': '/assets/frames/frame-023.png',
   'frame-024': '/assets/frames/frame-024.png',
+  'frame-025': '/assets/frames/frame-012.png',
+  'frame-026': '/assets/frames/frame-009.png',
 };
 
 
