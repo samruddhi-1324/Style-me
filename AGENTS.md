@@ -1,36 +1,40 @@
-# StyleMe Eyewear - Agent Context (Repo Memory)
+# StyleMe Eyewear — Agent Context (Repo Memory)
 
-> **Last Updated:** 2026-09-30 (Session 7)
+> **Last Updated:** 2026-10-04 (Sessions 14–15)
+> **Status:** 🟢 Frontend 100% Complete — All filters working, Virtual Try-On 1:1 mapping fixed, latest commit `48bda98` on `main`.
+
+---
 
 ## Project
 
-Premium eyewear e-commerce prototype. Next.js 16 + TypeScript + Tailwind CSS + GSAP + Zustand.
+Premium eyewear e-commerce prototype. Next.js 16 + TypeScript + Vanilla CSS (design tokens) + GSAP + Zustand.
 All data is mock (from `data/products.ts`). No real backend.
 
-**Live URLs:**
-- Production: https://style-me-virid.vercel.app
-- Local dev: http://localhost:3000
-- GitHub: https://github.com/samruddhi-1324/Style-me
+**Repo:** https://github.com/samruddhi-1324/Style-me
+**Local Dev:** http://localhost:3000
+**Vercel Production:** Check Vercel Dashboard — old preview URL `style-m2d9gjsx1-samruddhi16.vercel.app` is now login-gated. Find the current production URL in the Vercel project dashboard.
 
 ---
 
 ## Architecture
 
-- **App Router** with 12 pages:
-  - `/` — Homepage (GSAP hero & scroll triggers)
-  - `/shop` — Catalog with mobile filter drawer & query param filters
-  - `/product/[id]` — Detail page with gallery, specs, fit guide
-  - `/try-on` — Virtual Try-on SVG overlay + camera + upload
-  - `/lens-configurator` — 5-step Rx & lens configuration wizard
-  - `/cart` — Shopping cart with quantity & price summary
+- **Next.js 16 App Router** with 14 routes:
+  - `/` — Homepage (GSAP hero + scroll triggers, category grid)
+  - `/shop` — Catalog with smart filter drawer + color synonym matching + query param sync
+  - `/product/[id]` — Detail page with gallery, specs, fit guide, try-on CTA
+  - `/try-on` — Virtual Try-On: transparent PNG overlay engine, photo upload, eye-line calibration
+  - `/lens-configurator` — 5-step Rx & lens wizard
+  - `/cart` — Cart with quantity, price summary, slide-over drawer
   - `/checkout` — Shipping, payment, order success
-  - `/account` — User profile, order history, saved prescriptions
+  - `/account` — Profile, order history, saved prescriptions
   - `/wishlist` — Saved frames grid
   - `/collections` — Category grid & featured collections
-  - `/style-finder` — 4-step AI quiz with face shape analysis
-  - `/about` — Brand story, mission, timeline & team
+  - `/style-finder` — 4-step AI quiz + face shape analysis
+  - `/about` — Brand story, mission, timeline, team
+  - `/_not-found` — 404
+  - `/product/[id]` (dynamic) — Server-rendered on demand
 
-- **Layouts**: Header with mobile drawer, Footer, MobileNav bottom bar (< 768px), CartDrawer, AIAssistant.
+- **Layouts**: Header (mobile full-screen drawer), Footer, MobileNav (fixed bottom tab bar <768px), CartDrawer (slide-in), AIAssistant (mobile chat panel).
 
 ---
 
@@ -43,148 +47,166 @@ All data is mock (from `data/products.ts`). No real backend.
 
 ---
 
+## Product Data (`data/products.ts`)
+
+26 products total across 4 categories:
+- **Eyeglasses** (12): frame-001 to frame-008, frame-018 to frame-020, frame-023
+- **Sunglasses** (7): frame-009 to frame-012, frame-021, frame-025, frame-026
+- **Blue-light** (4): frame-013 to frame-015, frame-022
+- **Kids** (3): frame-016, frame-017, frame-024
+
+### Filter Coverage Matrix
+
+**Eyeglasses:**
+| Shape | Material | Key Colors |
+|---|---|---|
+| Rectangle | Acetate | Tortoise, Blue, Grey |
+| Round | TR90, Acetate | Black, Clear, Honey |
+| Cat-Eye | Acetate | Green, Pink, Rose Gold |
+| Square | Metal | Silver |
+| Aviator | Acetate | Brown |
+| Oval | TR90 | Grey |
+
+**Sunglasses:**
+| Shape | Material | Key Colors |
+|---|---|---|
+| Square | Acetate, Metal | Blue, Silver |
+| Aviator | Metal | Gold |
+| Cat-Eye | Acetate | Black |
+| Round | TR90 | Terracotta |
+| Rectangle | Acetate | Black |
+| Oval | Metal | Amber |
+
+---
+
+## Image Asset Architecture
+
+### Product Thumbnails (`public/assets/products/`)
+```
+eyeglasses/  → willow-tortoise.jpg, raven-black.jpg, azure-blue.jpg, maple-brown.jpg,
+               olive-green.jpg, crystal-clear.jpg, graphite-grey.jpg, blush-pink.jpg,
+               sunrise-rose.jpg, heritage-honey.jpg, minimal-silver.jpg, pebble-grey.jpg
+sunglasses/  → square-frames.jpg, aviator-frames.jpg, noir-black.jpg, terracotta-cat.jpg
+bluelight/   → bluelight-frames.jpg, scholar-gold.jpg, night-owl-amber.jpg, forest-green.jpg
+kids/        → kids-frames.jpg, mini-scholar-blue.jpg, tiny-tot-purple.jpg
+```
+
+### Try-On Overlays (`public/assets/frames/`)
+- `frame-001.png` to `frame-024.png` — Transparent PNG overlays, cleaned with ellipse-masked lens cutouts
+- `frame-025` and `frame-026` reuse `frame-012.png` and `frame-009.png` respectively
+
+### Image Mapping (`components/product/ProductImage.tsx`)
+- `PRODUCT_IMAGES` — maps product ID → thumbnail JPG path (26 entries)
+- `FRAME_OVERLAYS` — maps product ID → transparent PNG overlay path (26 entries)
+- `PRODUCT_TINTS` — optional color overlay tint for shared base images
+
+---
+
+## Virtual Try-On Architecture (`app/try-on/page.tsx`)
+
+### Single Source of Truth
+```typescript
+const [selectedFrame, setSelectedFrame] = useState<string>('frame-001');
+const currentFrame = products.find(p => p.id === selectedFrame) || products[0];
+```
+- Grid thumbnail click: `onClick={() => setSelectedFrame(f.id)}` — ID-based, never array-index
+- Overlay: `FRAME_OVERLAYS[currentFrame.id]`
+
+### Photo Upload State
+- `uploadedImageSrc` — object URL (created, cleaned up on unmount/replace)
+- File: JPG/PNG/WEBP, max 10MB validation
+- Portrait overlay positioned at `top: 29%`, width `210px` for eye-line alignment
+
+### Position Controls
+- `frameX` / `frameY` — Move sliders (-200px to +200px / -250px to +250px)
+- `frameScale` — Scale slider (0.3x to 3.0x)
+- `frameRotation` — Rotation slider (-45° to +45°)
+- Drag-to-move via pointer events (`onPointerDown/Move/Up`)
+- `triggerAutoFit()` — resets all transforms to defaults
+- `isScanning` — shows animated overlay during Auto Fit
+
+### Filter Predicate (5 AND conditions)
+1. Category — exact match (case-insensitive)
+2. Gender — Men includes Unisex, Women includes Unisex
+3. Frame Shape — normalized punctuation comparison
+4. Colour — substring + color family synonym matching
+5. Material — exact match (case-insensitive)
+
+---
+
+## Filter Logic (`app/shop/page.tsx`)
+
+10-condition AND predicate:
+1. Category (exact, case-insensitive)
+2. Gender (Men+Unisex, Women+Unisex, Unisex, Kids)
+3. Frame Shape (normalized: remove non-alpha chars)
+4. Material (exact)
+5. Size (exact)
+6. Price Range (min/max)
+7. Face Shape (substring in faceShapes[], fitNote, description)
+8. Frame Color — **smart synonym matching**:
+   - Black → {black, noir, graphite, raven, matte black}
+   - Brown → {brown, tortoise, honey, amber, sand, maple}
+   - Pink → {pink, blush, rose}
+   - Gold / Rose Gold → {gold, sand, honey, rose}
+   - Silver / Grey → {silver, grey, graphite}
+   - Blue → {blue, cobalt, azure}
+   - Green → {green, olive, forest}
+   - Clear / Transparent → {clear, transparent}
+9. Lens Type (badge/description/category substring)
+10. Search Query (name, category, color, material, shape, gender)
+
+Same synonym logic applied to Virtual Try-On (`app/try-on/page.tsx`) color filter.
+
+---
+
 ## CSS & Styling Strategy
 
 `app/globals.css` contains:
-1. **Design tokens** — `--color-ivory`, `--color-plum`, `--color-terracotta`, `--color-sage`, `--color-forest`, etc.
-2. **Utility classes** — `.grid-2`, `.grid-3`, `.grid-4`, `.cat-grid`, `.btn-primary`, `.btn-outline`, `.badge`, `.tag`, `.card`, `.skeleton`, `.input-field`
-3. **Page-specific responsive classes** — each page component uses `className` on layout containers; the CSS uses `!important` to override inline `style` props at mobile breakpoints.
-
-**Critical: How responsive layout works:**
-- Pages set `style={{ display: 'grid', gridTemplateColumns: '...' }}` for desktop
-- The same element also has a `className` (e.g. `className="cart-layout"`)
-- In `globals.css @media (max-width: 768px)`, `.cart-layout { grid-template-columns: 1fr !important; }` overrides the inline style
-- This pattern is used for ALL multi-column layouts across all pages
-
-**CSS Classes Quick Reference:**
-
-| Class | Mobile Behavior |
-|-------|----------------|
-| `.hero-grid` | 2-col → 1-col, `.hero-visual` hidden |
-| `.cat-grid` | 4-col → 2-col |
-| `.grid-2` | 2-col → 1-col |
-| `.grid-3` | 3-col → 2-col |
-| `.grid-4` | 4-col → 2-col |
-| `.product-detail-grid` | 2-col → 1-col |
-| `.product-info-actions` | Row → Column |
-| `.cart-layout` | 2-col → 1-col |
-| `.cart-item-grid` | 3-col → 2-col (100px + 1fr) |
-| `.cart-price-col` | Visible → Hidden |
-| `.cart-price-inline` | Hidden → Visible (shows price inline) |
-| `.checkout-layout` | 2-col → 1-col |
-| `.checkout-summary` | Last → First (order: -1) |
-| `.address-grid` | 2-col → 1-col |
-| `.lens-config-main` | 2-col → 1-col |
-| `.tryon-layout` | 2-col → 1-col |
-| `.account-layout` | 2-col → 1-col, sidebar hidden |
-| `.finder-results-grid` | 3-col → 2-col |
-| `.collections-cat-grid` | 4-col → 2-col |
-| `.footer-grid` | 4-col → 2-col |
+1. **Design tokens** — `--color-ivory`, `--color-plum`, `--color-terracotta`, `--color-sage`, `--color-forest`, `--color-espresso`, `--color-cream`, `--color-sand`, `--color-coral`, `--color-muted`
+2. **Utility classes** — `.grid-2/3/4`, `.cat-grid`, `.btn-primary`, `.btn-outline`, `.badge`, `.tag`, `.card`, `.input-field`
+3. **Page-specific responsive classes** — `.tryon-layout`, `.product-detail-grid`, `.cart-layout`, `.checkout-layout`, `.account-layout`, `.lens-config-main`, `.finder-results-grid`
+4. **Breakpoints**: `max-width: 768px` (mobile), `769–1024px` (tablet), `min-width: 769px` (desktop)
+5. **MobileNav offset**: `.tryon-page-wrapper { padding-bottom: calc(5rem + 70px) }` prevents overlap
 
 ---
 
-## Build & Deploy
+## Known Limitations
+
+- No real backend — all data is mock
+- Cart, wishlist, auth persisted to `localStorage` only (no API)
+- Payment flow is simulated (no real payment gateway)
+- Prescription upload is UI-only (no file storage)
+- Virtual Try-On uses calibrated preset positioning (`top: 29%`) — NOT real facial landmark detection
+- Camera in Try-On is browser webcam only (no AI face detection / MediaPipe)
+- Order history in Account is hardcoded mock data
+- frame-025 and frame-026 reuse existing transparent overlay PNGs
+
+---
+
+## Dev Commands
 
 ```powershell
-# Dev server
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass; npm run dev
+# Start dev server
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass; cd "d:\Style me\styleme"; npm run dev
 
-# Production build check (must pass before pushing)
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass; npm run build
+# Production build check
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass; cd "d:\Style me\styleme"; npm run build
 
-# Push to GitHub → triggers Vercel auto-deploy
-git add -A; git commit -m "message"; git push origin main
-```
-
-**Note on PowerShell:** Always prepend `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass;` before npm/git commands — execution policy is restricted on this machine.
-
----
-
-## Data Shape (Key Types)
-
-```typescript
-// Product (from data/products.ts)
-{
-  id: string;           // e.g. 'frame-001'
-  name: string;
-  category: 'Eyeglasses' | 'Sunglasses' | 'Blue-light' | 'Kids';
-  price: number;        // INR
-  originalPrice: number;
-  colors: string[];     // CSS color values
-  color: string;        // primary color name
-  frameShape: 'Round' | 'Oval' | 'Rectangle' | 'Cat-eye' | 'Aviator';
-  material: string;
-  measurements: { frameWidth, lensHeight, bridgeWidth, templeLength };
-  fit: 'Good' | 'Snug' | 'Roomy';
-  fitNote: string;
-  isFeatured: boolean;
-  isNew: boolean;
-  inStock: boolean;
-  badges: string[];
-  rating: number;
-  reviewCount: number;
-  faceShapes?: string[];
-  weight?: string;
-  prescriptionRange?: string;
-  warranty?: string;
-  gender: string;
-  description: string;
-}
-
-// CartItem (from lib/store.ts)
-{
-  id: string;
-  productId: string;
-  productName: string;
-  color: string;
-  size: string;
-  framePrice: number;
-  lensType: string;
-  lensTypePrice: number;
-  lensIndex: string;
-  lensIndexPrice: number;
-  coatings: string[];
-  coatingsPrice: number;
-  prescription: string | null;
-  quantity: number;
-  totalPrice: number;
-}
+# Commit & push (triggers Vercel auto-deploy)
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass; cd "d:\Style me\styleme"; git add -A; git commit -m "message"; git push origin main
 ```
 
 ---
 
-## Session 7 Fixes (2026-09-30) — What Changed
+## Possible Next Session Tasks
 
-1. **`app/globals.css`**:
-   - Added `.tag` class (terracotta pill-shaped eyebrow label)
-   - Added `.badge-coral` class (was undefined, used on product detail discount badge)
-   - Added `.cat-grid` utility class (4-col, collapses to 2-col on mobile)
-   - Added `.cat-grid` to mobile media query
-
-2. **`app/cart/page.tsx`**:
-   - Added `.cart-price-inline` div inside cart item info section
-   - Shows item price + remove button on mobile (replaces the hidden `.cart-price-col`)
-
-3. **Build**: Verified `npm run build` passes (14 routes, 0 errors, 0 TypeScript errors)
-
-4. **Git commit**: `316e0fb` — pushed to `main`, Vercel auto-deployed
-
----
-
-## Known Limitations (Intentional — Frontend Prototype)
-
-- No real backend
-- No real payment gateway
-- No AI face detection (Try-On uses demo avatar + SVG overlay)
-- Order history is hardcoded mock data
-- Prescription upload is UI-only
-
-<!-- BEGIN:nextjs-agent-rules -->
-
-# This is NOT the Next.js you know
-
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
-
-This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
-
-<!-- END:nextjs-agent-rules -->
+If the user wants to continue, these are the remaining optional enhancements:
+1. **Generate individual transparent overlay PNGs for frame-025 and frame-026** instead of reusing existing assets
+2. **Fix Vercel production URL** — check Vercel Dashboard and get the correct live URL
+3. **Backend integration** — connect cart, wishlist, orders to a real database (Supabase/Firebase)
+4. **Real face detection** — integrate MediaPipe FaceMesh for actual pupillary distance & eye-line detection in Virtual Try-On
+5. **Prescription upload** — connect to a storage backend (Cloudinary/S3)
+6. **Payment integration** — Razorpay or Stripe for real checkout flow
+7. **Search functionality** — full-text search across product name, color, shape, description
+8. **Product reviews** — add review submission form and backend storage

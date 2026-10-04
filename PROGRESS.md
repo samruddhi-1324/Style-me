@@ -1,7 +1,7 @@
 # StyleMe Eyewear – Project Progress
 
-> **Last Updated:** 2026-09-30 (Session 7)
-> **Status:** 🟢 Production-Ready — All 12 pages complete, mobile responsive, build verified, deployed to Vercel
+> **Last Updated:** 2026-10-04 (Sessions 14–15)
+> **Status:** 🟢 Frontend 100% Complete — All 14 routes built, all filters working, Virtual Try-On 1:1 frame mapping fixed, pushed to GitHub (`main` @ `48bda98`)
 
 ---
 
@@ -215,6 +215,127 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass; cd "d:\Style me\styl
 - **Build Verification**:
   - `npm run build` passed with 0 errors across 14 static and dynamic routes.
 
+### Session 14 (2026-10-02) — Critical Frame Mapping Bug Fix & Full QA Audit 🐛
+- **Root Cause Identified & Fixed — Virtual Try-On Frame Mismatch**:
+  - `PRODUCT_IMAGES` in `components/product/ProductImage.tsx` previously reused base image paths (e.g. `blush-pink.jpg` assigned to `frame-005` Olive Green). Clicking Pink thumbnail sent `frame-005` to state, which then loaded the Green overlay asset (`frame-005.png`).
+  - **Fix**: Created 13 dedicated, color-matched product thumbnails in `public/assets/products/` for every unique frame color. Updated `PRODUCT_IMAGES` so all 24 IDs point to unique color-matched images.
+- **Try-On Single Source of Truth**:
+  - Confirmed `selectedFrameId` as the only source of truth. `currentFrame` derived via `products.find(p => p.id === selectedFrameId)`.
+  - Frame overlay sourced via `FRAME_OVERLAYS[currentFrame.id]` exclusively — no array index lookups.
+- **Eye-Line Calibration**:
+  - Adjusted overlay origin from `top: 35%` to `top: 29%` for portrait uploads to correctly align pupils with optical center of lenses.
+  - Width locked at `210px` for consistent scaling across uploaded portrait sizes.
+- **Transparent Lens Cleaning**:
+  - All 24 frame overlays in `public/assets/frames/` cleaned using ellipse-masking to remove rear temple arm artifacts inside lens openings while preserving front rims and nose bridge.
+- **Full QA Results**:
+  - Pink → Pink overlay: ✅ | Green → Green overlay: ✅ | Black → Black overlay: ✅
+  - Rapid frame switching: ✅ | Filter + select + clear: ✅
+  - Auto Fit, sliders, Reset, drag-to-move: ✅ | Mobile responsiveness: ✅
+- **Build**: `npm run build` — 0 TypeScript errors, 14 routes compiled clean.
+- **Committed & Pushed**: `8b96ba5` → GitHub `main`.
+
+### Session 15 (2026-10-02) — Comprehensive Filter Coverage Fix 🔧
+- **Problems Fixed**:
+  - Eyeglasses + Square shape filter returned 0 results.
+  - Sunglasses + Round, Oval, Rectangle shape filters returned 0 results.
+  - Sunglasses + Metal / TR90 material filters returned 0 results.
+  - Color filters missed synonyms (e.g. selecting "Black" did not match "Matte Black", "Noir", "Graphite").
+  - Color filters missed color families (e.g. "Brown" did not match "Tortoise", "Honey", "Amber", "Sand").
+- **Data Fixes (`data/products.ts`)**:
+  - `frame-010` (*Desert Sand*): Changed to `material: 'Metal'`, `color: 'Gold'`.
+  - `frame-012` (*Terracotta Round*): Changed `frameShape: 'Round'`, `material: 'TR90'` under Sunglasses.
+  - `frame-020` (*Minimal Wire*): Changed `frameShape: 'Square'` under Eyeglasses + Metal.
+  - `frame-021` (*Bold Rectangle*): Changed `frameShape: 'Rectangle'` under Sunglasses.
+  - Added `frame-025` (*Amber Luxe Oval*): Sunglasses, Oval, Metal, Women.
+  - Added `frame-026` (*Steel Matrix*): Sunglasses, Square, Metal, Men.
+- **Color Synonym Filter (`app/shop/page.tsx` & `app/try-on/page.tsx`)**:
+  - Implemented intelligent color-family matching: Black→{noir, graphite, raven}, Brown→{tortoise, honey, amber, sand}, Pink→{blush, rose}, Gold→{sand, honey, rose gold}, Silver/Grey→{graphite}, Blue→{cobalt, azure}, Green→{olive, forest}, Clear→{transparent}.
+  - Applied same logic to both `/shop` and `/try-on` filter predicates.
+- **Image Mappings (`components/product/ProductImage.tsx`)**:
+  - Added `frame-025` and `frame-026` to both `PRODUCT_IMAGES` and `FRAME_OVERLAYS`.
+- **Build**: `npm run build` — 0 errors, 526ms.
+- **Committed & Pushed**: `48bda98` → GitHub `main`.
+
+---
+
+## 🌐 Live URLs (Updated)
+
+| Environment | URL | Status |
+|---|---|---|
+| **Local Dev** | http://localhost:3000 | ✅ Running |
+| **GitHub** | https://github.com/samruddhi-1324/Style-me | ✅ Latest: `48bda98` |
+| **Vercel (old preview)** | https://style-m2d9gjsx1-samruddhi16.vercel.app | ⚠️ Restricted (login required) |
+| **Vercel (production)** | Check Vercel Dashboard for latest prod URL | 🔍 Verify in dashboard |
+
+> ⚠️ **Vercel Note**: The old preview URL `style-m2d9gjsx1-samruddhi16.vercel.app` requires login. The live production URL is available in the Vercel Dashboard under your `Style-me` project. Vercel auto-deploys on every push to `main`.
+
+---
+
+## 🗂️ Key File Map (Updated)
+
+```
+d:\Style me\styleme\
+├── app/
+│   ├── globals.css              ← Design tokens + ALL responsive CSS
+│   ├── layout.tsx               ← Root layout
+│   ├── page.tsx                 ← Homepage
+│   ├── about/page.tsx
+│   ├── account/page.tsx
+│   ├── cart/page.tsx
+│   ├── checkout/page.tsx
+│   ├── collections/page.tsx
+│   ├── lens-configurator/page.tsx
+│   ├── product/[id]/page.tsx
+│   ├── shop/page.tsx            ← Smart color synonym + shape + material filters
+│   ├── style-finder/page.tsx
+│   ├── try-on/page.tsx          ← 1:1 frame mapping, photo upload, eye-line calibration
+│   └── wishlist/page.tsx
+├── components/
+│   ├── cart/CartDrawer.tsx
+│   ├── layout/Header.tsx
+│   ├── layout/Footer.tsx
+│   ├── layout/MobileNav.tsx
+│   ├── product/ProductCard.tsx
+│   ├── product/ProductImage.tsx ← PRODUCT_IMAGES + FRAME_OVERLAYS maps (frame-001 to frame-026)
+│   └── ui/AIAssistant.tsx
+├── data/products.ts             ← 26 products: Eyeglasses(12), Sunglasses(7), Blue-light(4), Kids(3)
+├── public/
+│   └── assets/
+│       ├── frames/              ← frame-001.png to frame-024.png (transparent overlays)
+│       └── products/
+│           ├── eyeglasses/      ← 12 color-matched thumbnail JPGs
+│           ├── sunglasses/      ← 4 thumbnail JPGs
+│           ├── bluelight/       ← 4 thumbnail JPGs
+│           └── kids/            ← 3 thumbnail JPGs
+├── lib/store.ts                 ← Zustand (cart, wishlist, auth — localStorage persisted)
+├── AGENTS.md                    ← Repo memory for AI agents
+└── PROGRESS.md                  ← This file
+```
+
+---
+
+## ✅ Filter Coverage Matrix (Current)
+
+### Eyeglasses (12 products)
+| Shape | Material | Colors |
+|---|---|---|
+| Rectangle | Acetate | Tortoise, Blue, Grey |
+| Round | TR90, Acetate | Black, Clear, Honey |
+| Cat-Eye | Acetate | Green, Pink, Rose Gold |
+| Square | Metal | Silver |
+| Aviator | Acetate | Brown |
+| Oval | TR90 | Grey |
+
+### Sunglasses (7 products)
+| Shape | Material | Colors |
+|---|---|---|
+| Square | Acetate, Metal | Blue, Silver |
+| Aviator | Metal | Gold |
+| Cat-Eye | Acetate | Black |
+| Round | TR90 | Terracotta |
+| Rectangle | Acetate | Black |
+| Oval | Metal | Amber |
+
 ---
 
 ## 🚧 Known Limitations (Frontend-Only Prototype)
@@ -224,4 +345,6 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass; cd "d:\Style me\styl
 - Payment flow is simulated (no real payment gateway)
 - Prescription upload is UI-only (no file storage)
 - Camera in Try-On is browser webcam only (no real AI face detection)
+- Virtual Try-On uses calibrated preset positioning (`top: 29%`) — NOT real facial landmark detection (MediaPipe/WebGL)
 - Order history in Account is hardcoded mock data
+- frame-025 and frame-026 share overlay PNGs from frame-012 and frame-009 respectively (transparent overlays not individually generated yet)
