@@ -1,239 +1,399 @@
-# StyleMe Eyewear — Agent Context (Repo Memory)
+﻿# StyleMe Eyewear — Implementation History (agents.md)
 
-> **Last Updated:** 2026-10-04 (Sessions 14–16)
-> **Status:** 🟢 Frontend 100% Complete — All filters working, Virtual Try-On 1:1 mapping fixed, latest commit `48bda98` on `main`. SRS fully read and analysed.
-
----
-
-## Project
-
-Premium eyewear e-commerce prototype. Next.js 16 + TypeScript + Vanilla CSS (design tokens) + GSAP + Zustand.
-All data is mock (from `data/products.ts`). No real backend.
-
-**Repo:** https://github.com/samruddhi-1324/Style-me
-**Local Dev:** http://localhost:3000
-**Vercel Production:** Check Vercel Dashboard — old preview URL `style-m2d9gjsx1-samruddhi16.vercel.app` is now login-gated. Find the current production URL in the Vercel project dashboard.
+> Root-level permanent implementation log.
+> NEVER delete previous phase history from this file.
+> Governed by: docs/Ecommerce_Product_SRS_Final_Baseline.md (authoritative) and docs/ecommerce_implementation_plan.md (execution order).
 
 ---
 
-## Architecture
+# PHASE 0 — REPOSITORY AND ARCHITECTURE AUDIT
 
-- **Next.js 16 App Router** with 14 routes:
-  - `/` — Homepage (GSAP hero + scroll triggers, category grid)
-  - `/shop` — Catalog with smart filter drawer + color synonym matching + query param sync
-  - `/product/[id]` — Detail page with gallery, specs, fit guide, try-on CTA
-  - `/try-on` — Virtual Try-On: transparent PNG overlay engine, photo upload, eye-line calibration
-  - `/lens-configurator` — 5-step Rx & lens wizard
-  - `/cart` — Cart with quantity, price summary, slide-over drawer
-  - `/checkout` — Shipping, payment, order success
-  - `/account` — Profile, order history, saved prescriptions
-  - `/wishlist` — Saved frames grid
-  - `/collections` — Category grid & featured collections
-  - `/style-finder` — 4-step AI quiz + face shape analysis
-  - `/about` — Brand story, mission, timeline, team
-  - `/_not-found` — 404
-  - `/product/[id]` (dynamic) — Server-rendered on demand
-
-- **Layouts**: Header (mobile full-screen drawer), Footer, MobileNav (fixed bottom tab bar <768px), CartDrawer (slide-in), AIAssistant (mobile chat panel).
+**Phase Number:** 0
+**Phase Name:** Repository and Architecture Audit
+**Status:** COMPLETE
+**Date:** 2026-10-04
+**.env accessed:** NO
 
 ---
 
-## State Management
+## Objective
 
-- **Zustand** store in `lib/store.ts` — persisted to `localStorage`
-- Cart: `cart[]`, `addToCart()`, `removeFromCart()`, `updateQuantity()`, `cartTotal()`, `setCartOpen()`
-- Wishlist: `wishlist[]`, `toggleWishlist()`, `isWishlisted()`
-- Auth: `user`, `isLoggedIn`, `login()`, `logout()`
+Inspect the existing repository in full detail before any backend implementation begins.
+No code was written, modified, or deleted during this phase.
 
 ---
 
-## Product Data (`data/products.ts`)
+## 1. Repository Structure
 
-26 products total across 4 categories:
-- **Eyeglasses** (12): frame-001 to frame-008, frame-018 to frame-020, frame-023
-- **Sunglasses** (7): frame-009 to frame-012, frame-021, frame-025, frame-026
-- **Blue-light** (4): frame-013 to frame-015, frame-022
-- **Kids** (3): frame-016, frame-017, frame-024
+d:\Style me\
+ .git/                         <- Git repository root
+ docs/                         <- Project documentation
+   Ecommerce_Product_SRS_Final_Baseline.md  <- Authoritative SRS (v3.0, 3691 lines)
+   ecommerce_implementation_plan.md          <- Approved implementation plan (17 phases)
+   StyleMe_Eyewear_NextJS_Antigravity_Master_Prompt.md
+   StyleMe_Eyewear_Premium_UI_Design_Specification.md
+   StyleMe_Eyewear_Prototype_PRD_Antigravity.md
+   ecommerce_implementation_plan.md
+ styleme/                      <- Next.js frontend application (entire current codebase)
+   app/                        <- App Router pages (13 routes)
+   components/                 <- Shared React components
+   data/                       <- Mock product data
+   lib/                        <- Types, services, Zustand store
+   public/                     <- Static assets
+   AGENTS.md                   <- Frontend agent memory (Sessions 1-16)
+   PROGRESS.md                 <- Frontend session history
+   package.json
+   tsconfig.json
+   .gitignore
+   .env.example                <- Safe placeholder only
 
-### Filter Coverage Matrix
-
-**Eyeglasses:**
-| Shape | Material | Key Colors |
-|---|---|---|
-| Rectangle | Acetate | Tortoise, Blue, Grey |
-| Round | TR90, Acetate | Black, Clear, Honey |
-| Cat-Eye | Acetate | Green, Pink, Rose Gold |
-| Square | Metal | Silver |
-| Aviator | Acetate | Brown |
-| Oval | TR90 | Grey |
-
-**Sunglasses:**
-| Shape | Material | Key Colors |
-|---|---|---|
-| Square | Acetate, Metal | Blue, Silver |
-| Aviator | Metal | Gold |
-| Cat-Eye | Acetate | Black |
-| Round | TR90 | Terracotta |
-| Rectangle | Acetate | Black |
-| Oval | Metal | Amber |
+FINDING: The repository is a single Next.js frontend. NO backend code exists anywhere.
 
 ---
 
-## Image Asset Architecture
+## 2. Frontend Assessment
 
-### Product Thumbnails (`public/assets/products/`)
-```
-eyeglasses/  → willow-tortoise.jpg, raven-black.jpg, azure-blue.jpg, maple-brown.jpg,
-               olive-green.jpg, crystal-clear.jpg, graphite-grey.jpg, blush-pink.jpg,
-               sunrise-rose.jpg, heritage-honey.jpg, minimal-silver.jpg, pebble-grey.jpg
-sunglasses/  → square-frames.jpg, aviator-frames.jpg, noir-black.jpg, terracotta-cat.jpg
-bluelight/   → bluelight-frames.jpg, scholar-gold.jpg, night-owl-amber.jpg, forest-green.jpg
-kids/        → kids-frames.jpg, mini-scholar-blue.jpg, tiny-tot-purple.jpg
-```
+### Technology Stack
+- Next.js 16.3.7 (App Router, Turbopack)
+- React 19.2.8
+- TypeScript ^5 (strict mode)
+- Tailwind CSS ^4
+- GSAP ^3.15.0 + @gsap/react ^2.1.2
+- Lenis ^1.3.26 (smooth scroll)
+- Zustand ^5.0.15
 
-### Try-On Overlays (`public/assets/frames/`)
-- `frame-001.png` to `frame-024.png` — Transparent PNG overlays, cleaned with ellipse-masked lens cutouts
-- `frame-025` and `frame-026` reuse `frame-012.png` and `frame-009.png` respectively
+### Routes (13 total, all built)
+- /                   app/page.tsx (31,972 bytes)
+- /shop               Smart filter, color synonyms, shape, material, gender, price
+- /product/[id]       Dynamic PDP with gallery, specs, fit guide
+- /try-on             Virtual Try-On: transparent PNG overlays, photo upload
+- /lens-configurator  5-step Rx wizard
+- /cart               Zustand-persisted cart
+- /checkout           Simulated checkout + order success
+- /account            Profile, order history (mock)
+- /wishlist           Wishlist grid
+- /collections        Category grid
+- /style-finder       4-step AI quiz + face shape
+- /about              Brand story
+- 404                 App Router default
 
-### Image Mapping (`components/product/ProductImage.tsx`)
-- `PRODUCT_IMAGES` — maps product ID → thumbnail JPG path (26 entries)
-- `FRAME_OVERLAYS` — maps product ID → transparent PNG overlay path (26 entries)
-- `PRODUCT_TINTS` — optional color overlay tint for shared base images
+### Components
+- Header.tsx (18,094 bytes) - Nav, mobile drawer, cart badge
+- Footer.tsx (7,182 bytes)
+- MobileNav.tsx (4,097 bytes) - Fixed bottom tab bar
+- ProductCard.tsx (15,356 bytes)
+- ProductImage.tsx (11,412 bytes) - PRODUCT_IMAGES + FRAME_OVERLAYS maps (26 entries each)
+- CartDrawer.tsx - Slide-in drawer
+- AIAssistant.tsx (9,470 bytes) - Chat panel
+- JsonLd.tsx (3,170 bytes) - Product/Org/Search/Breadcrumb structured data
 
----
+### Service Layer (API-Ready Abstractions)
+- lib/services/productService.ts - ProductService (filter, sort, paginate, getById, featured, related)
+- lib/services/cartService.ts    - CartService (totals calculation, coupon validation - MOCK)
+- lib/services/reviewService.ts  - ReviewService (get reviews, summary, submit - MOCK)
+- lib/services/aiService.ts      - AiService (face shape, fit score, assistant - MOCK)
 
-## Virtual Try-On Architecture (`app/try-on/page.tsx`)
+All services use static async methods returning typed Promises.
+Ready for Phase 14 replacement with real HTTP API calls.
 
-### Single Source of Truth
-```typescript
-const [selectedFrame, setSelectedFrame] = useState<string>('frame-001');
-const currentFrame = products.find(p => p.id === selectedFrame) || products[0];
-```
-- Grid thumbnail click: `onClick={() => setSelectedFrame(f.id)}` — ID-based, never array-index
-- Overlay: `FRAME_OVERLAYS[currentFrame.id]`
+### Type System
+- lib/types/product.ts  - Product, ProductFilterOptions, ProductListResponse
+- lib/types/ai.ts       - FaceShape, FaceAnalysisResult, FrameFitScore, AiChatMessage
+- lib/types/review.ts   - Review, ReviewSummary
 
-### Photo Upload State
-- `uploadedImageSrc` — object URL (created, cleaned up on unmount/replace)
-- File: JPG/PNG/WEBP, max 10MB validation
-- Portrait overlay positioned at `top: 29%`, width `210px` for eye-line alignment
+ProductListResponse already has: page, pageSize, totalPages, totalCount - matches REST pagination.
 
-### Position Controls
-- `frameX` / `frameY` — Move sliders (-200px to +200px / -250px to +250px)
-- `frameScale` — Scale slider (0.3x to 3.0x)
-- `frameRotation` — Rotation slider (-45° to +45°)
-- Drag-to-move via pointer events (`onPointerDown/Move/Up`)
-- `triggerAutoFit()` — resets all transforms to defaults
-- `isScanning` — shows animated overlay during Auto Fit
+### State Management (Zustand - lib/store.ts)
+- cart: CartItem[] - persisted to localStorage (key: styleme-store)
+- wishlist: string[] - persisted
+- cartOpen: boolean
+- NO auth state currently in store (verified in actual file)
 
-### Filter Predicate (5 AND conditions)
-1. Category — exact match (case-insensitive)
-2. Gender — Men includes Unisex, Women includes Unisex
-3. Frame Shape — normalized punctuation comparison
-4. Colour — substring + color family synonym matching
-5. Material — exact match (case-insensitive)
+### Data Layer
+- data/products.ts (26,085 bytes) - 26 mock products:
+  Eyeglasses: 12 (frame-001..008, frame-018..020, frame-023)
+  Sunglasses: 7 (frame-009..012, frame-021, frame-025, frame-026)
+  Blue-light: 4 (frame-013..015, frame-022)
+  Kids: 3 (frame-016, frame-017, frame-024)
 
----
-
-## Filter Logic (`app/shop/page.tsx`)
-
-10-condition AND predicate:
-1. Category (exact, case-insensitive)
-2. Gender (Men+Unisex, Women+Unisex, Unisex, Kids)
-3. Frame Shape (normalized: remove non-alpha chars)
-4. Material (exact)
-5. Size (exact)
-6. Price Range (min/max)
-7. Face Shape (substring in faceShapes[], fitNote, description)
-8. Frame Color — **smart synonym matching**:
-   - Black → {black, noir, graphite, raven, matte black}
-   - Brown → {brown, tortoise, honey, amber, sand, maple}
-   - Pink → {pink, blush, rose}
-   - Gold / Rose Gold → {gold, sand, honey, rose}
-   - Silver / Grey → {silver, grey, graphite}
-   - Blue → {blue, cobalt, azure}
-   - Green → {green, olive, forest}
-   - Clear / Transparent → {clear, transparent}
-9. Lens Type (badge/description/category substring)
-10. Search Query (name, category, color, material, shape, gender)
-
-Same synonym logic applied to Virtual Try-On (`app/try-on/page.tsx`) color filter.
+### SEO
+- Root layout exports metadata (title template, description, OG, Twitter) - VERIFIED
+- JsonLd.tsx: Organization, WebSite, Product, Breadcrumb schemas - VERIFIED
+- Org + WebSite schemas rendered in root layout - VERIFIED
 
 ---
 
-## CSS & Styling Strategy
+## 3. Backend Assessment
 
-`app/globals.css` contains:
-1. **Design tokens** — `--color-ivory`, `--color-plum`, `--color-terracotta`, `--color-sage`, `--color-forest`, `--color-espresso`, `--color-cream`, `--color-sand`, `--color-coral`, `--color-muted`
-2. **Utility classes** — `.grid-2/3/4`, `.cat-grid`, `.btn-primary`, `.btn-outline`, `.badge`, `.tag`, `.card`, `.input-field`
-3. **Page-specific responsive classes** — `.tryon-layout`, `.product-detail-grid`, `.cart-layout`, `.checkout-layout`, `.account-layout`, `.lens-config-main`, `.finder-results-grid`
-4. **Breakpoints**: `max-width: 768px` (mobile), `769–1024px` (tablet), `min-width: 769px` (desktop)
-5. **MobileNav offset**: `.tryon-page-wrapper { padding-bottom: calc(5rem + 70px) }` prevents overlap
+FINDING: NO backend code exists.
+- pom.xml: NOT FOUND
+- build.gradle: NOT FOUND  
+- *.java files: NOT FOUND (recursive scan confirmed)
+- Spring Boot structure: NOT FOUND
 
----
-
-## Known Limitations
-
-- No real backend — all data is mock
-- Cart, wishlist, auth persisted to `localStorage` only (no API)
-- Payment flow is simulated (no real payment gateway)
-- Prescription upload is UI-only (no file storage)
-- Virtual Try-On uses calibrated preset positioning (`top: 29%`) — NOT real facial landmark detection
-- Camera in Try-On is browser webcam only (no AI face detection / MediaPipe)
-- Order history in Account is hardcoded mock data
-- frame-025 and frame-026 reuse existing transparent overlay PNGs
+Backend must be created from scratch starting with Phase 1.
 
 ---
 
-## Dev Commands
+## 4. Database Assessment
 
-```powershell
-# Start dev server
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass; cd "d:\Style me\styleme"; npm run dev
+FINDING: NO database configuration exists.
+- No application.properties or application.yml
+- No database connection strings
+- No ORM configuration
+- No Flyway/migration scripts
+- No schema files
 
-# Production build check
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass; cd "d:\Style me\styleme"; npm run build
-
-# Commit & push (triggers Vercel auto-deploy)
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass; cd "d:\Style me\styleme"; git add -A; git commit -m "message"; git push origin main
-```
-
----
-
-## SRS Compliance Summary (Session 16 Analysis)
-
-**Source:** `docs/Ecommerce_Product_SRS_Final_Baseline.md` (v3.0, 3691 lines)
-
-### Frontend Phase — COMPLETE ✅
-All MUST-level SRS requirements for the Frontend Foundation phase are satisfied.
-
-### Identified Gaps (SHOULD / optional):
-- **Accessibility** — ARIA labels not fully audited
-- **SEO** — meta descriptions may be missing on some pages
-- **JSON-LD** — no structured product data for AI search engines
-- **CMS-ready content layer** — hero/promo text is hardcoded JSX
-- **frame-025 / frame-026** — reuse existing overlay PNGs (not unique)
-
-### SRS Non-Negotiable Rules:
-1. No assumption rule — do NOT invent business rules
-2. No overengineering — implement only what current phase requires
-3. Phase gate rule — every phase needs a report + explicit user approval
-4. Frontend must NOT depend on JPA entities, DB schemas, or backend internals
-5. This SRS v3.0 supersedes all earlier v1/v2 docs
-
-### Backend Phases (ALL locked — require explicit user approval):
-- Phase 0: Repository & Architecture Audit (next authorized step)
-- Phase 1–17: Full backend stack (Spring Boot + PostgreSQL) per SRS Sections 88–115
+.env.example contains only: NEXT_PUBLIC_SITE_URL=https://styleme-eyewear.vercel.app
+.env was NOT accessed.
 
 ---
 
-## Possible Next Session Tasks
+## 5. API Assessment
 
-If the user wants to continue, these are the remaining optional enhancements:
-1. **Accessibility audit** — add ARIA labels, keyboard nav, focus management
-2. **SEO** — add meta descriptions + JSON-LD structured data to all pages
-3. **Generate individual transparent overlay PNGs for frame-025 and frame-026** instead of reusing existing assets
-4. **Fix Vercel production URL** — check Vercel Dashboard and get the correct live URL
-5. **Backend Phase 0** — Repository & Architecture Audit (requires user approval to start)
-6. **Real face detection** — integrate MediaPipe FaceMesh for actual eye-line detection in Virtual Try-On
-7. **Payment integration** — Razorpay or Stripe for real checkout flow
-8. **Auth + DB** — connect cart, wishlist, orders to a real database (Supabase/Auth.js)
+FINDING: NO REST APIs exist.
+- No Next.js API routes (app/api/) found
+- No backend endpoints exist
+- All data: Component -> Service (static class) -> Mock data in products.ts
+- Services use setTimeout to simulate latency - ready for API replacement
+
+---
+
+## 6. Authentication Assessment
+
+FINDING: NO authentication mechanism exists.
+- No JWT handling
+- No session management
+- No auth API calls
+- No protected routes
+- Zustand store has NO auth state (verified in actual file)
+- All pages are publicly accessible
+
+Auth and RBAC: Phase 2 (backend) + Phase 14 (frontend integration)
+
+---
+
+## 7. Dependency Assessment
+
+Production:
+- next: 16.3.7
+- react/react-dom: 19.2.8
+- zustand: ^5.0.15
+- gsap/@gsap/react: ^3.15/^2.1.2
+- lenis: ^1.3.26
+
+Dev:
+- typescript: ^5
+- tailwindcss: ^4
+- eslint: ^9
+- eslint-config-next: 16.3.7
+- @types/*: various
+
+FINDING: NO testing dependencies installed (no jest, vitest, playwright, @testing-library/*).
+FINDING: zod appears in node_modules as transitive dependency but is NOT used in project source.
+
+---
+
+## 8. Testing Assessment
+
+FINDING: ZERO project-level tests exist.
+- No test files in app/, components/, lib/, or data/
+- No test runner configured
+- No testing scripts in package.json
+- All test files found are inside node_modules (third-party library tests)
+
+Test infrastructure required:
+- Frontend: Vitest + React Testing Library (Phase 14)
+- Backend: JUnit 5 + Mockito + Testcontainers (Phases 1-13)
+
+---
+
+## 9. Security Assessment
+
+| Item                          | Status | Notes                                    |
+|-------------------------------|--------|------------------------------------------|
+| .env properly gitignored      | PASS   | Pattern .env* with !.env.example         |
+| No credentials in source      | PASS   | Verified across all files                |
+| No real API keys              | PASS   | .env.example has only site URL           |
+| No auth implementation        | N/A    | Expected - frontend-only phase           |
+| HTTPS enforcement             | N/A    | Handled by Vercel                        |
+| CORS configuration            | N/A    | No backend exists yet                    |
+| Rate limiting                 | N/A    | No backend exists yet                    |
+| Server-side input validation  | N/A    | No backend exists yet                    |
+| XSS protection                | PASS   | React default escaping + Next.js headers |
+
+.env was NOT accessed. Only .env.example was inspected.
+
+---
+
+## 10. Technical Debt Assessment
+
+| Item                                                  | Severity | Fix Phase    |
+|-------------------------------------------------------|----------|--------------|
+| No automated tests (frontend or backend)              | HIGH     | Phase 1+     |
+| Coupon validation is frontend-authoritative           | HIGH     | Phase 6 + 14 |
+| Cart totals calculated on frontend                    | HIGH     | Phase 7 + 14 |
+| Review submission has no persistence                  | HIGH     | Phase 11     |
+| All product data is mock                              | HIGH     | Phase 3      |
+| No authentication/authorization                       | HIGH     | Phase 2 + 14 |
+| AiService.analyzeFaceShape() is pseudo-random         | MEDIUM   | Future AI    |
+| verifiedPurchase hardcoded true in review submission  | MEDIUM   | Phase 11     |
+| Review count fabricated (48 as fallback)              | MEDIUM   | Phase 11     |
+| No pagination (returns all products at once)          | LOW      | Phase 3 + 14 |
+| .git.zip (921MB) committed to repo                    | LOW      | Pre-Phase 1  |
+| components.zip (213KB) committed to repo              | LOW      | Pre-Phase 1  |
+| No error boundary components                          | LOW      | Phase 14     |
+| CMS content hardcoded in JSX                          | LOW      | Phase 12/14  |
+| frame-025/026 share overlay PNGs                      | LOW      | Optional     |
+
+---
+
+## 11. SRS vs. Current Implementation Conflicts
+
+| # | Conflict                                          | Severity | Action                         |
+|---|---------------------------------------------------|----------|--------------------------------|
+| 1 | Coupon validation is frontend-authoritative        | HIGH     | Fix Phase 6 (backend) + 14    |
+| 2 | Cart totals calculated on frontend                 | HIGH     | Fix Phase 7 (backend) + 14    |
+| 3 | Review verified-purchase hardcoded true            | MEDIUM   | Fix Phase 11                   |
+| 4 | No user auth state in frontend                     | HIGH     | Expected; fix Phase 2 + 14    |
+| 5 | AI face analysis is pseudo-random                  | MEDIUM   | Acceptable prototype           |
+| 6 | Inventory is not backend-managed                   | HIGH     | Expected; fix Phase 4 + 14    |
+| 7 | Large binary files in git (.git.zip, components.zip)| LOW     | Remove in cleanup commit       |
+
+---
+
+## 12. SRS Ambiguities Identified (Report for User Approval)
+
+| # | Ambiguity                                                    | SRS Section     | Recommendation                              |
+|---|--------------------------------------------------------------|-----------------|---------------------------------------------|
+| A1| Frontend will need NEXT_PUBLIC_API_URL for backend calls.    | API-readiness   | Clarify env var name before Phase 14.       |
+|   | SRS does not define the exact env var name.                  |                 |                                             |
+| A2| Notifications domain - delivery mechanism not specified       | Notifications   | Clarify (email/SMS/push) before Phase 12/13.|
+|   | (email, SMS, push, or in-app?).                              |                 |                                             |
+| A3| Prescription data ownership unclear - product domain or      | Frontend arch   | Clarify before Phase 3 or Phase 5.         |
+|   | separate prescription domain?                                |                 |                                             |
+
+---
+
+## 13. Recommended Backend Location
+
+Backend to be created at: d:\Style me\backend\ (sibling of styleme/)
+
+Package name: com.styleme (RORA naming explicitly excluded per SRS Section 116)
+Backend port: 8080 (Spring Boot default)
+Frontend port: 3000 (Next.js default)
+CORS: must allow http://localhost:3000 in local development
+
+Recommended backend module structure:
+  backend/src/main/java/com/styleme/
+    StyleMeApplication.java
+    common/ (exception, dto, config, response)
+    auth/
+    user/
+    customer/
+    category/
+    product/
+    inventory/
+    cart/
+    wishlist/
+    coupon/
+    checkout/
+    order/
+    payment/
+    shipment/
+    returns/
+    review/
+    cms/
+    admin/
+    audit/
+
+---
+
+## 14. Files to Preserve Through All Backend Phases
+
+  - app/ (all pages)
+  - app/globals.css
+  - components/ (all components)
+  - lib/types/ (types)
+  - lib/store.ts (will need auth additions in Phase 14)
+  - data/products.ts (until replaced by backend in Phase 14)
+  - public/ (all static assets)
+  - components/seo/JsonLd.tsx
+  - PROGRESS.md, AGENTS.md (frontend session docs)
+
+---
+
+## 15. Files / Modules to CREATE in Future Phases
+
+  Phase 1:  d:\Style me\backend\ (entire Spring Boot project)
+  Phase 14: lib/api/apiClient.ts (HTTP client)
+  Phase 14: Auth additions to lib/store.ts
+  Phase 14: Loading / error states in all pages
+
+---
+
+## 16. Architectural Risks
+
+| Risk                                                        | Probability | Impact | Mitigation                                |
+|-------------------------------------------------------------|-------------|--------|-------------------------------------------|
+| CORS issues: frontend calling Spring Boot                   | MEDIUM      | MEDIUM | Configure Spring Security CORS in Phase 1 |
+| localStorage cart conflicts with server cart in Phase 14    | MEDIUM      | HIGH   | Sync localStorage -> server on login      |
+| .git.zip (921MB) causing slow git operations                | HIGH        | LOW    | Remove from tracking                      |
+| No test infrastructure - hard to verify backend             | HIGH        | HIGH   | Set up JUnit5 + Testcontainers in Phase 1 |
+| Coupon codes visible in browser source until Phase 14       | MEDIUM      | LOW    | Acceptable for prototype                  |
+
+---
+
+## Files Created
+  - d:\Style me\agents.md (this file)
+
+## Files Modified
+  - None
+
+## Files Deleted
+  - None
+
+## Database Changes
+  - None
+
+## APIs Added or Changed
+  - None
+
+## Tests Created
+  - None
+
+## Tests Executed
+  - None
+
+## Test Results
+  - N/A
+
+## Security Verification
+  - .env was NOT accessed, opened, read, parsed, copied, modified, deleted, loaded, or imported
+  - Only .env.example was inspected (contains only safe NEXT_PUBLIC_SITE_URL placeholder)
+  - No credentials found in any source file
+
+## Deferred Requirements
+  - Test infrastructure (all phases)
+  - Backend (Phases 1-13)
+  - Frontend-backend integration (Phase 14)
+  - Full QA (Phase 15)
+  - Production preparation (Phase 16)
+  - Production deployment (Phase 17)
+
+## Known Issues
+  - .git.zip (921MB) and components.zip (213KB) committed to repository
+  - Coupon validation is frontend-authoritative (fix in Phase 6 + 14)
+  - Cart totals are frontend-calculated (fix in Phase 7 + 14)
+  - No auth state in frontend store (fix in Phase 14 after Phase 2)
+
+## Next Phase
+  Phase 1 - Backend Foundation
+
+## User Approval Status
+  WAITING FOR EXPLICIT USER APPROVAL
+  Do NOT proceed to Phase 1 until user explicitly approves.
+
+---
+
+End of Phase 0 record. Do not delete this history.
