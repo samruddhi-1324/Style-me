@@ -1,7 +1,7 @@
 # StyleMe Eyewear — Agent Context (Repo Memory)
 
-> **Last Updated:** 2026-10-04 (Sessions 14–15)
-> **Status:** 🟢 Frontend 100% Complete — All filters working, Virtual Try-On 1:1 mapping fixed, latest commit `48bda98` on `main`.
+> **Last Updated:** 2026-10-04 (Sessions 14–16)
+> **Status:** 🟢 Frontend 100% Complete — All filters working, Virtual Try-On 1:1 mapping fixed, latest commit `48bda98` on `main`. SRS fully read and analysed.
 
 ---
 
@@ -199,14 +199,41 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass; cd "d:\Style me\styl
 
 ---
 
+## SRS Compliance Summary (Session 16 Analysis)
+
+**Source:** `docs/Ecommerce_Product_SRS_Final_Baseline.md` (v3.0, 3691 lines)
+
+### Frontend Phase — COMPLETE ✅
+All MUST-level SRS requirements for the Frontend Foundation phase are satisfied.
+
+### Identified Gaps (SHOULD / optional):
+- **Accessibility** — ARIA labels not fully audited
+- **SEO** — meta descriptions may be missing on some pages
+- **JSON-LD** — no structured product data for AI search engines
+- **CMS-ready content layer** — hero/promo text is hardcoded JSX
+- **frame-025 / frame-026** — reuse existing overlay PNGs (not unique)
+
+### SRS Non-Negotiable Rules:
+1. No assumption rule — do NOT invent business rules
+2. No overengineering — implement only what current phase requires
+3. Phase gate rule — every phase needs a report + explicit user approval
+4. Frontend must NOT depend on JPA entities, DB schemas, or backend internals
+5. This SRS v3.0 supersedes all earlier v1/v2 docs
+
+### Backend Phases (ALL locked — require explicit user approval):
+- Phase 0: Repository & Architecture Audit (next authorized step)
+- Phase 1–17: Full backend stack (Spring Boot + PostgreSQL) per SRS Sections 88–115
+
+---
+
 ## Possible Next Session Tasks
 
 If the user wants to continue, these are the remaining optional enhancements:
-1. **Generate individual transparent overlay PNGs for frame-025 and frame-026** instead of reusing existing assets
-2. **Fix Vercel production URL** — check Vercel Dashboard and get the correct live URL
-3. **Backend integration** — connect cart, wishlist, orders to a real database (Supabase/Firebase)
-4. **Real face detection** — integrate MediaPipe FaceMesh for actual pupillary distance & eye-line detection in Virtual Try-On
-5. **Prescription upload** — connect to a storage backend (Cloudinary/S3)
-6. **Payment integration** — Razorpay or Stripe for real checkout flow
-7. **Search functionality** — full-text search across product name, color, shape, description
-8. **Product reviews** — add review submission form and backend storage
+1. **Accessibility audit** — add ARIA labels, keyboard nav, focus management
+2. **SEO** — add meta descriptions + JSON-LD structured data to all pages
+3. **Generate individual transparent overlay PNGs for frame-025 and frame-026** instead of reusing existing assets
+4. **Fix Vercel production URL** — check Vercel Dashboard and get the correct live URL
+5. **Backend Phase 0** — Repository & Architecture Audit (requires user approval to start)
+6. **Real face detection** — integrate MediaPipe FaceMesh for actual eye-line detection in Virtual Try-On
+7. **Payment integration** — Razorpay or Stripe for real checkout flow
+8. **Auth + DB** — connect cart, wishlist, orders to a real database (Supabase/Auth.js)
