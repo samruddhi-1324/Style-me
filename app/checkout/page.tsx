@@ -2,10 +2,11 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useStore } from '@/lib/store';
+import AuthGuard from '@/components/auth/AuthGuard';
 
 const states = ['Maharashtra', 'Karnataka', 'Tamil Nadu', 'Delhi', 'Gujarat', 'Rajasthan', 'West Bengal', 'Telangana', 'Kerala', 'Andhra Pradesh'];
 
-export default function CheckoutPage() {
+function CheckoutContent() {
   const { cart, cartTotal } = useStore();
   const [address, setAddress] = useState({ name: 'Samruddhi Patil', phone: '', address: '125, Green Park, Pune', city: 'Pune', state: 'Maharashtra', pin: '411036' });
   const [shipping, setShipping] = useState('standard');
@@ -291,5 +292,13 @@ function Section({ title, children }: { title: string; children: React.ReactNode
       <h3 style={{ fontFamily: 'Inter, sans-serif', fontSize: '0.9rem', fontWeight: 700, color: 'var(--color-plum)', marginBottom: '1.25rem', letterSpacing: '0.02em' }}>{title}</h3>
       {children}
     </div>
+  );
+}
+
+export default function CheckoutPage() {
+  return (
+    <AuthGuard redirectTo="/checkout">
+      <CheckoutContent />
+    </AuthGuard>
   );
 }

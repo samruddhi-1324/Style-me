@@ -5,6 +5,7 @@ import Footer from "@/components/layout/Footer";
 import MobileNav from "@/components/layout/MobileNav";
 import CartDrawer from "@/components/cart/CartDrawer";
 import AIAssistant from "@/components/ui/AIAssistant";
+import AuthSessionProvider from "@/components/auth/AuthSessionProvider";
 import { OrganizationJsonLd, WebsiteSearchJsonLd } from "@/components/seo/JsonLd";
 
 export const metadata: Metadata = {
@@ -40,14 +41,15 @@ export default function RootLayout({
       <body>
         <OrganizationJsonLd />
         <WebsiteSearchJsonLd />
-        <Header />
-        <main>{children}</main>
-        <Footer />
-        <MobileNav />
-        <CartDrawer />
-        <AIAssistant />
+        <AuthSessionProvider>
+          <Header />
+          <main>{children}</main>
+          <Footer />
+          <MobileNav />
+          <CartDrawer />
+          <AIAssistant />
+        </AuthSessionProvider>
       </body>
     </html>
   );
 }
-

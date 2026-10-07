@@ -1,10 +1,11 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { notFound } from 'next/navigation';
+import { notFound, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { products } from '@/data/products';
 import { useStore } from '@/lib/store';
+import { loginHref } from '@/lib/auth/redirect';
 import { gsap } from 'gsap';
 import { PRODUCT_IMAGES, PRODUCT_TINTS } from '@/components/product/ProductImage';
 import { ProductJsonLd, BreadcrumbJsonLd } from '@/components/seo/JsonLd';
@@ -12,6 +13,7 @@ import { ProductJsonLd, BreadcrumbJsonLd } from '@/components/seo/JsonLd';
 interface Props { params: Promise<{ id: string }> }
 
 export default function ProductDetailPage({ params }: Props) {
+  const router = useRouter();
   const [productId, setProductId] = useState('');
   const [selectedColor, setSelectedColor] = useState(0);
   const [selectedImage, setSelectedImage] = useState(0);
@@ -20,6 +22,7 @@ export default function ProductDetailPage({ params }: Props) {
   const galleryRef = useRef<HTMLDivElement>(null);
   const infoRef = useRef<HTMLDivElement>(null);
   const { toggleWishlist, isWishlisted } = useStore();
+  const isAuthenticated = useStore((state) => state.auth.isAuthenticated);
 
   useEffect(() => {
     params.then((p) => setProductId(p.id));
@@ -329,7 +332,13 @@ export default function ProductDetailPage({ params }: Props) {
 
           {/* Wishlist */}
           <button
-            onClick={() => toggleWishlist(product!.id)}
+            onClick={() => {
+              if (!isAuthenticated) {
+                router.push(loginHref('/wishlist'));
+                return;
+              }
+              toggleWishlist(product!.id);
+            }}
             style={{
               width: '100%', padding: '0.75rem',
               background: 'none',

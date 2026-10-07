@@ -1,9 +1,11 @@
 'use client';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Product } from '@/data/products';
 import { useStore } from '@/lib/store';
+import { loginHref } from '@/lib/auth/redirect';
 import { PRODUCT_IMAGES, PRODUCT_TINTS } from '@/components/product/ProductImage';
 
 interface ProductCardProps {
@@ -12,10 +14,12 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product, showTryOn = true }: ProductCardProps) {
+  const router = useRouter();
   const [hovered, setHovered] = useState(false);
   const [selectedColorIdx, setSelectedColorIdx] = useState(0);
   const [imgError, setImgError] = useState(false);
   const { toggleWishlist, isWishlisted } = useStore();
+  const isAuthenticated = useStore((state) => state.auth.isAuthenticated);
   const wishlisted = isWishlisted(product.id);
   const discount = Math.round((1 - product.price / product.originalPrice) * 100);
 
@@ -104,7 +108,13 @@ export default function ProductCard({ product, showTryOn = true }: ProductCardPr
 
       {/* Wishlist button */}
       <button
-        onClick={() => toggleWishlist(product.id)}
+        onClick={() => {
+          if (!isAuthenticated) {
+            router.push(loginHref('/wishlist'));
+            return;
+          }
+          toggleWishlist(product.id);
+        }}
         style={{
           position: 'absolute', top: '0.75rem', right: '0.75rem', zIndex: 10,
           background: 'white', border: 'none', borderRadius: '50%',
@@ -113,6 +123,7 @@ export default function ProductCard({ product, showTryOn = true }: ProductCardPr
           transform: wishlisted ? 'scale(1.1)' : 'scale(1)',
         }}
         title={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+        aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
       >
         <svg width="16" height="16" fill={wishlisted ? '#D95C4F' : 'none'} stroke={wishlisted ? '#D95C4F' : '#8E8580'} strokeWidth="1.8" viewBox="0 0 24 24">
           <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />

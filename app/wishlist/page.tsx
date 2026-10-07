@@ -3,8 +3,9 @@ import Link from 'next/link';
 import { useStore } from '@/lib/store';
 import { products } from '@/data/products';
 import ProductCard from '@/components/product/ProductCard';
+import AuthGuard from '@/components/auth/AuthGuard';
 
-export default function WishlistPage() {
+function WishlistContent() {
   const { wishlist } = useStore();
   const wishlisted = products.filter((p) => wishlist.includes(p.id));
 
@@ -36,5 +37,13 @@ export default function WishlistPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function WishlistPage() {
+  return (
+    <AuthGuard redirectTo="/wishlist">
+      <WishlistContent />
+    </AuthGuard>
   );
 }

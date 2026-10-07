@@ -22,6 +22,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -126,5 +127,72 @@ class AuthServiceTests {
                 .thenThrow(new BadCredentialsException("Bad credentials"));
 
         assertThrows(BadCredentialsException.class, () -> authService.login(request));
+    }
+
+    @Test
+    @DisplayName("Google sign-in creates a verified customer linked to Google's stable subject")
+    void testGoogleLoginCreatesUser() {
+        Map<String, Object> claims = Map.of(
+                "sub", "google-subject-123",
+                "email", "Google.User@example.com",
+                "email_verified", true,
+                "given_name", "Google",
+                "family_name", "User"
+        );
+        Role customerRole = new Role(RoleEnum.ROLE_CUSTOMER, "Customer");
+        User savedUser = new User("google.user@example.com", "encoded-random-password", "Google", "User");
+        savedUser.setId(UUID.randomUUID());
+        savedUser.setGoogleSubject("google-subject-123");
+        savedUser.setEmailVerified(true);
+        savedUser.addRole(customerRole);
+
+        when(userRepository.findByGoogleSubject("google-subject-123")).thenReturn(Optional.empty());
+        when(userRepository.existsByEmail("google.user@example.com")).thenReturn(false);
+        when(passwordEncoder.encode(anyString())).thenReturn("encoded-random-password");
+        when(roleRepository.findByName(RoleEnum.ROLE_CUSTOMER)).thenReturn(Optional.of(customerRole));
+        when(userRepository.save(any(User.class))).thenReturn(savedUser);
+        when(tokenProvider.generateTokenFromUserPrincipal(any(UserPrincipal.class))).thenReturn("google-jwt");
+        when(tokenProvider.getExpirationMs()).thenReturn(3600000L);
+
+        AuthResponse response = authService.loginWithGoogle(claims);
+
+        assertEquals("google-jwt", response.getAccessToken());
+        assertEquals("google.user@example.com", response.getUser().getEmail());
+        assertTrue(response.getUser().isEmailVerified());
+        verify(userRepository).save(argThat(user ->
+                user.getGoogleSubject().equals("google-subject-123")
+                        && user.isEmailVerified()
+                        && user.getRoles().contains(customerRole)));
+    }
+
+    @Test
+    @DisplayName("Google sign-in does not silently link an existing email account")
+    void testGoogleLoginRejectsUnlinkedExistingEmail() {
+        when(userRepository.findByGoogleSubject("google-subject-123")).thenReturn(Optional.empty());
+        when(userRepository.existsByEmail("existing@example.com")).thenReturn(true);
+
+        var exception = assertThrows(org.springframework.security.oauth2.core.OAuth2AuthenticationException.class,
+                () -> authService.loginWithGoogle(Map.of(
+                        "sub", "google-subject-123",
+                        "email", "existing@example.com",
+                        "email_verified", true
+                )));
+
+        assertEquals("GOOGLE_ACCOUNT_LINK_REQUIRED", exception.getError().getErrorCode());
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("Google sign-in rejects an unverified email")
+    void testGoogleLoginRejectsUnverifiedEmail() {
+        var exception = assertThrows(org.springframework.security.oauth2.core.OAuth2AuthenticationException.class,
+                () -> authService.loginWithGoogle(Map.of(
+                        "sub", "google-subject-123",
+                        "email", "unverified@example.com",
+                        "email_verified", false
+                )));
+
+        assertEquals("GOOGLE_EMAIL_NOT_VERIFIED", exception.getError().getErrorCode());
+        verify(userRepository, never()).save(any(User.class));
     }
 }

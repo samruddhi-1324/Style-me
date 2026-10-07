@@ -10,6 +10,7 @@ import com.styleme.user.entity.RoleEnum;
 import com.styleme.user.entity.User;
 import com.styleme.user.repository.RoleRepository;
 import com.styleme.user.repository.UserRepository;
+import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -64,7 +65,7 @@ class AuthControllerSecurityTests {
     }
 
     @Test
-    @DisplayName("POST /api/v1/auth/register creates user and returns 201 with JWT")
+    @DisplayName("POST /api/v1/auth/register creates user and sets an HttpOnly session cookie")
     void testRegisterSuccess() throws Exception {
         RegisterRequest request = new RegisterRequest("john@example.com", "Password123", "John", "Doe");
 
@@ -73,10 +74,10 @@ class AuthControllerSecurityTests {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.accessToken").isNotEmpty())
-                .andExpect(jsonPath("$.data.tokenType").value("Bearer"))
-                .andExpect(jsonPath("$.data.user.email").value("john@example.com"))
-                .andExpect(jsonPath("$.data.user.firstName").value("John"));
+                .andExpect(jsonPath("$.data.email").value("john@example.com"))
+                .andExpect(jsonPath("$.data.firstName").value("John"))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers
+                        .header().string("Set-Cookie", org.hamcrest.Matchers.containsString("HttpOnly")));
     }
 
     @Test
@@ -95,7 +96,7 @@ class AuthControllerSecurityTests {
     }
 
     @Test
-    @DisplayName("POST /api/v1/auth/login with valid credentials returns 200 OK and JWT token")
+    @DisplayName("POST /api/v1/auth/login with valid credentials sets an HttpOnly session cookie")
     void testLoginSuccess() throws Exception {
         User user = new User("sarah@example.com", passwordEncoder.encode("Password123"), "Sarah", "Connor");
         user.addRole(customerRole);
@@ -108,8 +109,9 @@ class AuthControllerSecurityTests {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.accessToken").isNotEmpty())
-                .andExpect(jsonPath("$.data.user.email").value("sarah@example.com"));
+                .andExpect(jsonPath("$.data.email").value("sarah@example.com"))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers
+                        .header().string("Set-Cookie", org.hamcrest.Matchers.containsString("HttpOnly")));
     }
 
     @Test
@@ -157,6 +159,41 @@ class AuthControllerSecurityTests {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.email").value("authuser@example.com"))
                 .andExpect(jsonPath("$.data.firstName").value("Auth"));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/auth/session restores the current user from the HttpOnly session cookie")
+    void testGetSessionWithCookie() throws Exception {
+        User user = new User("cookieuser@example.com", passwordEncoder.encode("Password123"), "Cookie", "User");
+        user.addRole(customerRole);
+        User savedUser = userRepository.save(user);
+        String token = tokenProvider.generateTokenFromUserPrincipal(UserPrincipal.create(savedUser));
+
+        mockMvc.perform(get("/api/v1/auth/session")
+                        .cookie(new Cookie("STYLEME_SESSION", token))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.email").value("cookieuser@example.com"));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/auth/session without a cookie returns an empty session")
+    void testGetSessionWithoutCookie() throws Exception {
+        mockMvc.perform(get("/api/v1/auth/session"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data").doesNotExist());
+    }
+
+    @Test
+    @DisplayName("POST /api/v1/auth/logout expires the HttpOnly session cookie")
+    void testLogoutExpiresCookie() throws Exception {
+        mockMvc.perform(post("/api/v1/auth/logout"))
+                .andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers
+                        .header().string("Set-Cookie", org.hamcrest.Matchers.allOf(
+                                org.hamcrest.Matchers.containsString("HttpOnly"),
+                                org.hamcrest.Matchers.containsString("Max-Age=0"))));
     }
 
     @Test

@@ -2,6 +2,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { loginHref } from '@/lib/auth/redirect';
 import { useStore } from '@/lib/store';
 import { products } from '@/data/products';
 import { PRODUCT_IMAGES, PRODUCT_TINTS } from '@/components/product/ProductImage';
@@ -80,6 +82,8 @@ export default function StyleFinderPage() {
   const [isScanningFace, setIsScanningFace] = useState(false);
   const [aiDetectedShape, setAiDetectedShape] = useState<FaceShape>(null);
   const { toggleWishlist, isWishlisted } = useStore();
+  const router = useRouter();
+  const isAuthenticated = useStore((state) => state.auth.isAuthenticated);
 
   const recommendations = showResults ? getRecommendations(faceShape, selectedStyles, selectedUsages, budget || 'mid') : [];
 
@@ -169,7 +173,17 @@ export default function StyleFinderPage() {
                 <div style={{ padding: '1.25rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
                     <h3 style={{ fontFamily: 'Inter, sans-serif', fontSize: '1rem', fontWeight: 700, color: 'var(--color-espresso)' }}>{product.name}</h3>
-                    <button onClick={() => toggleWishlist(product.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem' }}>
+                    <button
+                      onClick={() => {
+                        if (!isAuthenticated) {
+                          router.push(loginHref('/wishlist'));
+                          return;
+                        }
+                        toggleWishlist(product.id);
+                      }}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem' }}
+                      aria-label={isWishlisted(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
+                    >
                       {isWishlisted(product.id) ? '❤️' : '🤍'}
                     </button>
                   </div>

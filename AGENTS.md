@@ -1,4 +1,4 @@
-﻿# StyleMe Eyewear — Implementation History (agents.md)
+# StyleMe Eyewear — Implementation History (agents.md)
 
 > Root-level permanent implementation log.
 > NEVER delete previous phase history from this file.
@@ -388,12 +388,429 @@ Recommended backend module structure:
   - No auth state in frontend store (fix in Phase 14 after Phase 2)
 
 ## Next Phase
-  Phase 1 - Backend Foundation
+  Phase 1 - Backend Foundation (COMPLETE)
 
 ## User Approval Status
-  WAITING FOR EXPLICIT USER APPROVAL
-  Do NOT proceed to Phase 1 until user explicitly approves.
+  Phase 1 Approved and Executed.
 
 ---
 
-End of Phase 0 record. Do not delete this history.
+# PHASE 1 — BACKEND FOUNDATION
+
+**Phase Number:** 1  
+**Phase Name:** Backend Foundation  
+**Status:** COMPLETE  
+**Date:** 2026-10-04  
+**Java Version:** OpenJDK 21.0.12.1 LTS  
+**Maven Version:** Apache Maven 3.10.0-rc-1  
+**Spring Boot Version:** 3.3.5  
+**.env accessed:** NO  
+
+---
+
+## Objective
+
+Establish a production-ready, modular monolith Spring Boot backend foundation for StyleMe Eyewear adhering strictly to the SRS and Implementation Plan.
+
+---
+
+## Requirements Addressed
+
+- **SRS Section 2 & 116:** Architecture Foundation (Spring Boot, Java 21, Maven, PostgreSQL, `com.styleme` root namespace).
+- **Implementation Plan Section 2 & 6:** REST API rules (`/api/v1` prefix, DTO boundaries, Bean Validation, RFC 7807 error format).
+- **Implementation Plan Section 10 (Phase 1):** Backend Foundation complete deliverable suite.
+
+---
+
+## Detailed Implementation Performed
+
+1. **Environment Verification:**
+   - Verified Java 21 LTS (`openjdk version 21.0.12.1`) and Apache Maven 3.10.0 on Windows environment.
+   - Verified PostgreSQL service (`postgresql-x64-18`, version 18.6) running locally.
+
+2. **Project Scaffolding & Build Configuration (`pom.xml`):**
+   - Configured Spring Boot 3.3.5 parent.
+   - Added Spring Boot starters: `web`, `data-jpa`, `security`, `validation`, `actuator`.
+   - Added PostgreSQL JDBC driver and Flyway migration support (`flyway-core`, `flyway-database-postgresql`).
+   - Added SpringDoc OpenAPI 3 UI (`springdoc-openapi-starter-webmvc-ui:2.6.0`).
+   - Configured Lombok and test dependencies (Spring Boot Starter Test, Spring Security Test, H2 database for isolated test slice execution).
+   - Java 21 compiler plugin configured.
+
+3. **Application Configuration:**
+   - `application.yml`: Configured server port (8080), PostgreSQL datasource with fallback placeholders, Hikari pool tuning, JPA Hibernate validation, Flyway migrations, Actuator endpoints (`health`, `info`, `metrics`), SpringDoc OpenAPI paths (`/api-docs`, `/swagger-ui.html`), and CORS configuration.
+   - `application-test.yml`: Configured isolated H2 in-memory profile (`MODE=PostgreSQL`) for deterministic automated test execution.
+
+4. **Flyway Migration Foundation:**
+   - Created `src/main/resources/db/migration/V1__init.sql` setting up `uuid-ossp` extension and `schema_audit_log` table with Phase 1 migration tracking.
+
+5. **Base Package & Modular Monolith Structure (`com.styleme`):**
+   - Scaffolding modular domain packages with `package-info.java` defining domain boundaries:
+     - `com.styleme.auth`: Authentication & RBAC domain
+     - `com.styleme.user`: User & Customer profile domain
+     - `com.styleme.product`: Product catalog & specifications domain
+     - `com.styleme.category`: Taxonomy & navigation domain
+     - `com.styleme.inventory`: Stock reservation & availability domain
+     - `com.styleme.cart`: Cart & optical lens configuration domain
+     - `com.styleme.order`: Order lifecycle & checkout domain
+     - `com.styleme.payment`: Transactions & payment intents domain
+     - `com.styleme.review`: Customer ratings & reviews domain
+     - `com.styleme.coupon`: Discounts & promotions domain
+
+6. **Standardized DTO Contract & Boundary (`com.styleme.common.dto`):**
+   - `ApiResponse<T>`: Uniform API success/data envelope.
+   - `ErrorResponse`: RFC 7807 compliant error format (`status`, `error`, `message`, `path`, `timestamp`, `errors`).
+   - `FieldErrorItem`: Detailed field validation error representation.
+   - `PageResponse<T>`: Standardized pagination envelope aligned with frontend `ProductListResponse` (`items`, `page`, `pageSize`, `totalPages`, `totalCount`, `hasNext`, `hasPrevious`).
+
+7. **Global Exception Handling (`com.styleme.common.exception`):**
+   - Implemented `ApiException`, `ResourceNotFoundException`, `BadRequestException`, `UnauthorizedException`, `ForbiddenException`, `ConflictException`.
+   - Implemented `@RestControllerAdvice GlobalExceptionHandler` handling `ApiException`, `MethodArgumentNotValidException`, `ConstraintViolationException`, `AccessDeniedException`, `BadCredentialsException`, `NoResourceFoundException`, `HttpRequestMethodNotSupportedException`, and unexpected `Exception`.
+
+8. **Security & CORS Configuration (`com.styleme.common.config`):**
+   - `CorsConfig`: Configured CORS for `http://localhost:3000` and production frontend `https://style-me-virid.vercel.app` with credentials and standard HTTP methods.
+   - `SecurityConfig`: Stateless session management, CSRF disabled for REST, BCrypt password encoder bean, public access granted for Actuator, OpenAPI/Swagger UI, and `/api/v1/health`.
+   - `OpenApiConfig`: OpenAPI 3.0 documentation configuration with Bearer JWT scheme ready for Phase 2.
+
+9. **Health & Monitoring Endpoints (`com.styleme.common.controller`):**
+   - `HealthCheckController` exposed at `GET /api/v1/health` returning system status, timestamp, and version metadata.
+   - Spring Boot Actuator health probe available at `GET /actuator/health`.
+
+10. **Environment Security:**
+    - Created `.env.example` in backend root with safe placeholders (`DATABASE_URL`, `DATABASE_USERNAME`, `DATABASE_PASSWORD`, `JWT_SECRET`, `PORT`).
+    - Verified `.env` was NEVER accessed.
+
+---
+
+## Files Created
+
+- `backend/pom.xml`
+- `backend/.gitignore`
+- `backend/.env.example`
+- `backend/src/main/resources/application.yml`
+- `backend/src/main/resources/db/migration/V1__init.sql`
+- `backend/src/main/java/com/styleme/StyleMeApplication.java`
+- `backend/src/main/java/com/styleme/common/config/CorsConfig.java`
+- `backend/src/main/java/com/styleme/common/config/SecurityConfig.java`
+- `backend/src/main/java/com/styleme/common/config/OpenApiConfig.java`
+- `backend/src/main/java/com/styleme/common/controller/HealthCheckController.java`
+- `backend/src/main/java/com/styleme/common/dto/ApiResponse.java`
+- `backend/src/main/java/com/styleme/common/dto/ErrorResponse.java`
+- `backend/src/main/java/com/styleme/common/dto/FieldErrorItem.java`
+- `backend/src/main/java/com/styleme/common/dto/PageResponse.java`
+- `backend/src/main/java/com/styleme/common/exception/ApiException.java`
+- `backend/src/main/java/com/styleme/common/exception/BadRequestException.java`
+- `backend/src/main/java/com/styleme/common/exception/ConflictException.java`
+- `backend/src/main/java/com/styleme/common/exception/ForbiddenException.java`
+- `backend/src/main/java/com/styleme/common/exception/GlobalExceptionHandler.java`
+- `backend/src/main/java/com/styleme/common/exception/ResourceNotFoundException.java`
+- `backend/src/main/java/com/styleme/common/exception/UnauthorizedException.java`
+- `backend/src/main/java/com/styleme/auth/package-info.java`
+- `backend/src/main/java/com/styleme/cart/package-info.java`
+- `backend/src/main/java/com/styleme/category/package-info.java`
+- `backend/src/main/java/com/styleme/coupon/package-info.java`
+- `backend/src/main/java/com/styleme/inventory/package-info.java`
+- `backend/src/main/java/com/styleme/order/package-info.java`
+- `backend/src/main/java/com/styleme/payment/package-info.java`
+- `backend/src/main/java/com/styleme/product/package-info.java`
+- `backend/src/main/java/com/styleme/review/package-info.java`
+- `backend/src/main/java/com/styleme/user/package-info.java`
+- `backend/src/test/resources/application-test.yml`
+- `backend/src/test/java/com/styleme/StyleMeApplicationTests.java`
+- `backend/src/test/java/com/styleme/common/controller/HealthCheckControllerTests.java`
+- `backend/src/test/java/com/styleme/common/dto/ApiResponseTests.java`
+- `backend/src/test/java/com/styleme/common/exception/GlobalExceptionHandlerTests.java`
+
+---
+
+## Files Modified
+
+- `agents.md` (Updated with Phase 1 completion record)
+
+---
+
+## Database Changes
+
+- Flyway migration `V1__init.sql`:
+  - `CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`
+  - `CREATE TABLE IF NOT EXISTS schema_audit_log (id SERIAL PRIMARY KEY, phase VARCHAR(50), description TEXT, executed_at TIMESTAMP WITH TIME ZONE)`
+  - Recorded initial Phase 1 audit entry.
+
+---
+
+## APIs Added or Changed
+
+- `GET /api/v1/health` — Service health probe and version metadata
+- `GET /actuator/health` — Spring Boot Actuator readiness and liveness probe
+- `GET /api-docs` — SpringDoc OpenAPI 3 JSON specification
+- `GET /swagger-ui.html` — Interactive Swagger UI documentation
+
+---
+
+## Tests Created & Executed
+
+| Test Class | Test Method | Type | Result |
+|---|---|---|---|
+| `StyleMeApplicationTests` | `contextLoads()` | Integration / Context | PASS |
+| `ApiResponseTests` | `testSuccessWithData()` | Unit | PASS |
+| `ApiResponseTests` | `testSuccessWithMessageAndData()` | Unit | PASS |
+| `ApiResponseTests` | `testError()` | Unit | PASS |
+| `ApiResponseTests` | `testPageResponseCalculations()` | Unit | PASS |
+| `GlobalExceptionHandlerTests` | `testHandleApiException()` | Unit | PASS |
+| `GlobalExceptionHandlerTests` | `testHandleResourceNotFoundException()` | Unit | PASS |
+| `GlobalExceptionHandlerTests` | `testHandleAccessDeniedException()` | Unit | PASS |
+| `GlobalExceptionHandlerTests` | `testHandleBadCredentialsException()` | Unit | PASS |
+| `GlobalExceptionHandlerTests` | `testHandleGenericException()` | Unit | PASS |
+| `HealthCheckControllerTests` | `testHealthEndpoint()` | MockMvc Integration | PASS |
+| `HealthCheckControllerTests` | `testActuatorHealthEndpoint()` | MockMvc Integration | PASS |
+
+**Total Tests:** 12  
+**Failures:** 0  
+**Errors:** 0  
+**Skipped:** 0  
+**Pass Rate:** 100%
+
+---
+
+## Security Verification
+
+- **.env accessed: NO** (Strict adherence to Environment Security Rule; safe `.env.example` created).
+- CORS strictly configured to allow frontend development (`http://localhost:3000`) and production (`https://style-me-virid.vercel.app`).
+- CSRF disabled for stateless REST API security.
+- Passwords configured with `BCryptPasswordEncoder` bean.
+- Swagger UI configured with Bearer JWT security scheme ready for Phase 2.
+
+---
+
+## Next Phase
+
+**Phase 2 — Authentication and RBAC (COMPLETE)**
+
+## User Approval Status
+
+Phase 2 Approved and Executed.
+
+---
+
+# PHASE 2 — AUTHENTICATION AND RBAC
+
+**Phase Number:** 2  
+**Phase Name:** Authentication and RBAC  
+**Status:** COMPLETE  
+**Date:** 2026-10-04  
+**Java Version:** OpenJDK 21.0.12.1 LTS  
+**Spring Boot Version:** 3.3.5  
+**.env accessed:** NO  
+
+---
+
+## Objective
+
+Implement production-ready, authoritative user authentication, registration, JWT session issuance, and Role-Based Access Control (RBAC) per the SRS and Implementation Plan.
+
+---
+
+## Requirements Addressed
+
+- **SRS Section 35:** Roles and Permissions (`ROLE_CUSTOMER`, `ROLE_ADMIN`, `ROLE_SUPER_ADMIN`, `ROLE_CATALOG_MANAGER`, `ROLE_ORDER_MANAGER`, `ROLE_SUPPORT_AGENT`).
+- **SRS Section 36:** Authentication & Account Management (Registration, login, identity endpoints, BCrypt hashing).
+- **SRS Section 108:** Security requirements (JWT token signing, protection against privilege escalation, unauthorized 401 & forbidden 403 error formats).
+- **Implementation Plan Section 10 (Phase 2):** Authentication and RBAC complete deliverables.
+
+---
+
+## Detailed Implementation Performed
+
+1. **Database Schema & Migrations (`V2__auth_and_users.sql`):**
+   - Created `roles` table with `id`, `name`, `description`.
+   - Created `users` table with `id` (UUID), `email` (unique index), `password_hash`, `first_name`, `last_name`, `phone_number`, `is_active`, `is_email_verified`, `created_at`, `updated_at`.
+   - Created `user_roles` join table with foreign keys and cascade delete.
+   - Seeded 6 authoritative roles per SRS: `ROLE_CUSTOMER`, `ROLE_ADMIN`, `ROLE_SUPER_ADMIN`, `ROLE_CATALOG_MANAGER`, `ROLE_ORDER_MANAGER`, `ROLE_SUPPORT_AGENT`.
+
+2. **Domain Entities & Enums:**
+   - `RoleEnum`: Enum representing all 6 system roles.
+   - `Role`: JPA entity mapping `roles`.
+   - `User`: JPA entity mapping `users` with eager role relationships.
+
+3. **Repositories:**
+   - `UserRepository`: `findByEmail`, `existsByEmail`.
+   - `RoleRepository`: `findByName`.
+
+4. **Security & JWT Infrastructure (`com.styleme.auth.security`):**
+   - `UserPrincipal`: Custom `UserDetails` wrapper encapsulating UUID id, email, password, and GrantedAuthorities.
+   - `JwtTokenProvider`: Generates, parses, and validates signed JWT tokens using HMAC-SHA256 (`io.jsonwebtoken 0.12.6`), embedding `userId`, `email`, and `roles`.
+   - `CustomUserDetailsService`: Bridges `UserRepository` with Spring Security authentication provider.
+   - `JwtAuthenticationFilter`: Extracts Bearer token from `Authorization` header on every request, validates signature and expiration, and sets `SecurityContextHolder`.
+   - `JwtAuthenticationEntryPoint`: Catches unauthenticated access and emits RFC 7807 401 Unauthorized responses.
+   - `CustomAccessDeniedHandler`: Catches unauthorized privilege access and emits RFC 7807 403 Forbidden responses.
+
+5. **Authentication & User Services:**
+   - `AuthService`:
+     - Registration: Checks duplicate emails (throws `ConflictException` 409), hashes passwords with BCrypt, assigns default `ROLE_CUSTOMER`, generates initial JWT session.
+     - Login: Authenticates through Spring `AuthenticationManager`, verifies credentials, emits signed JWT session.
+   - `UserService`: User profile retrieval, admin user listing, and profile updates.
+
+6. **REST Controllers & API Boundaries:**
+   - `AuthController`:
+     - `POST /api/v1/auth/register` (returns 201 Created with `AuthResponse`)
+     - `POST /api/v1/auth/login` (returns 200 OK with `AuthResponse`)
+     - `GET /api/v1/auth/me` (returns 200 OK with `UserResponse` for authenticated token)
+   - `AdminController`:
+     - `GET /api/v1/admin/users` (secured with `@PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")`)
+     - `GET /api/v1/admin/dashboard` (secured with `@PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")`)
+
+---
+
+## Files Created
+
+- `backend/src/main/resources/db/migration/V2__auth_and_users.sql`
+- `backend/src/main/java/com/styleme/user/entity/RoleEnum.java`
+- `backend/src/main/java/com/styleme/user/entity/Role.java`
+- `backend/src/main/java/com/styleme/user/entity/User.java`
+- `backend/src/main/java/com/styleme/user/repository/RoleRepository.java`
+- `backend/src/main/java/com/styleme/user/repository/UserRepository.java`
+- `backend/src/main/java/com/styleme/user/dto/UserResponse.java`
+- `backend/src/main/java/com/styleme/user/dto/UpdateUserRequest.java`
+- `backend/src/main/java/com/styleme/user/service/UserService.java`
+- `backend/src/main/java/com/styleme/user/controller/AdminController.java`
+- `backend/src/main/java/com/styleme/auth/dto/RegisterRequest.java`
+- `backend/src/main/java/com/styleme/auth/dto/LoginRequest.java`
+- `backend/src/main/java/com/styleme/auth/dto/AuthResponse.java`
+- `backend/src/main/java/com/styleme/auth/security/UserPrincipal.java`
+- `backend/src/main/java/com/styleme/auth/security/JwtTokenProvider.java`
+- `backend/src/main/java/com/styleme/auth/security/CustomUserDetailsService.java`
+- `backend/src/main/java/com/styleme/auth/security/JwtAuthenticationFilter.java`
+- `backend/src/main/java/com/styleme/auth/security/JwtAuthenticationEntryPoint.java`
+- `backend/src/main/java/com/styleme/auth/security/CustomAccessDeniedHandler.java`
+- `backend/src/main/java/com/styleme/auth/service/AuthService.java`
+- `backend/src/main/java/com/styleme/auth/controller/AuthController.java`
+- `backend/src/test/java/com/styleme/auth/security/JwtTokenProviderTests.java`
+- `backend/src/test/java/com/styleme/auth/service/AuthServiceTests.java`
+- `backend/src/test/java/com/styleme/auth/controller/AuthControllerSecurityTests.java`
+
+---
+
+## Files Modified
+
+- `backend/pom.xml` (added JJWT dependencies: `jjwt-api`, `jjwt-impl`, `jjwt-jackson` v0.12.6)
+- `backend/src/main/java/com/styleme/common/config/SecurityConfig.java` (wired JwtFilter, handlers, and route security rules)
+- `agents.md` (updated with Phase 2 complete record)
+
+---
+
+## Database Changes
+
+- Flyway migration `V2__auth_and_users.sql`:
+  - Created tables: `roles`, `users`, `user_roles`
+  - Seeded initial system roles
+  - Created index on `users(email)`
+  - Recorded Phase 2 audit log entry
+
+---
+
+## APIs Added or Changed
+
+- `POST /api/v1/auth/register` — Public customer registration
+- `POST /api/v1/auth/login` — Public user authentication
+- `GET /api/v1/auth/me` — Authenticated user profile identity
+- `GET /api/v1/admin/users` — Admin-only user directory
+- `GET /api/v1/admin/dashboard` — Admin-only dashboard summary
+
+---
+
+## Tests Created & Executed
+
+| Test Class | Test Method | Type | Result |
+|---|---|---|---|
+| `StyleMeApplicationTests` | `contextLoads()` | Context | PASS |
+| `ApiResponseTests` | `testSuccessWithData()` | Unit | PASS |
+| `ApiResponseTests` | `testSuccessWithMessageAndData()` | Unit | PASS |
+| `ApiResponseTests` | `testError()` | Unit | PASS |
+| `ApiResponseTests` | `testPageResponseCalculations()` | Unit | PASS |
+| `GlobalExceptionHandlerTests` | `testHandleApiException()` | Unit | PASS |
+| `GlobalExceptionHandlerTests` | `testHandleResourceNotFoundException()` | Unit | PASS |
+| `GlobalExceptionHandlerTests` | `testHandleAccessDeniedException()` | Unit | PASS |
+| `GlobalExceptionHandlerTests` | `testHandleBadCredentialsException()` | Unit | PASS |
+| `GlobalExceptionHandlerTests` | `testHandleGenericException()` | Unit | PASS |
+| `HealthCheckControllerTests` | `testHealthEndpoint()` | MockMvc Integration | PASS |
+| `HealthCheckControllerTests` | `testActuatorHealthEndpoint()` | MockMvc Integration | PASS |
+| `JwtTokenProviderTests` | `testGenerateTokenAndValidate()` | Unit | PASS |
+| `JwtTokenProviderTests` | `testValidateInvalidToken()` | Unit | PASS |
+| `JwtTokenProviderTests` | `testValidateExpiredToken()` | Unit | PASS |
+| `AuthServiceTests` | `testRegisterSuccess()` | Unit | PASS |
+| `AuthServiceTests` | `testRegisterDuplicateEmail()` | Unit | PASS |
+| `AuthServiceTests` | `testLoginSuccess()` | Unit | PASS |
+| `AuthServiceTests` | `testLoginInvalidCredentials()` | Unit | PASS |
+| `AuthControllerSecurityTests` | `testRegisterSuccess()` | MockMvc Security | PASS |
+| `AuthControllerSecurityTests` | `testRegisterValidationFailure()` | MockMvc Security | PASS |
+| `AuthControllerSecurityTests` | `testLoginSuccess()` | MockMvc Security | PASS |
+| `AuthControllerSecurityTests` | `testLoginWrongPassword()` | MockMvc Security | PASS |
+| `AuthControllerSecurityTests` | `testGetCurrentUserUnauthorized()` | MockMvc Security | PASS |
+| `AuthControllerSecurityTests` | `testGetCurrentUserAuthorized()` | MockMvc Security | PASS |
+| `AuthControllerSecurityTests` | `testAdminEndpointForbiddenForCustomer()` | MockMvc Security | PASS |
+| `AuthControllerSecurityTests` | `testAdminEndpointAuthorizedForAdmin()` | MockMvc Security | PASS |
+
+**Total Tests:** 27  
+**Failures:** 0  
+**Errors:** 0  
+**Skipped:** 0  
+**Pass Rate:** 100%
+
+---
+
+## Security Verification
+
+- **.env accessed: NO** (Zero access to `.env` files).
+- Passwords hashed with BCrypt.
+- Role checks enforced at Spring Security filter and `@PreAuthorize` level.
+- Customer tokens cannot access Admin endpoints (403 Forbidden verified).
+- Missing/invalid tokens cannot access protected endpoints (401 Unauthorized verified).
+- Expired tokens rejected.
+
+---
+
+## Next Phase
+
+**Phase 3 — Categories, Products and Variants**
+
+---
+
+## User Approval Status
+
+**WAITING FOR EXPLICIT USER APPROVAL**  
+Execution STOPPED after Phase 2 completion per Phase Gate rules. Do NOT proceed to Phase 3 until user explicitly approves.
+
+
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->
+
+---
+
+# FRONTEND AND BACKEND AUTH SESSION INTEGRATION
+
+**Date:** 2026-10-07
+**Status:** IMPLEMENTED — VERCEL AUTH DISABLED UNTIL BACKEND HOSTING
+**Private credentials accessed:** NO
+
+## Changes
+
+- Replaced simulated frontend login and registration with backend API calls that use HttpOnly session cookies.
+- Added initial session restoration, authenticated route guard handling, backend logout, and Google OAuth initiation with safe redirect preservation.
+- Added matching backend cookie issuance for login/registration, cookie-based session lookup, logout, and OAuth login handlers.
+- Configured production builds to keep auth disabled unless `NEXT_PUBLIC_AUTH_ENABLED=true`; local development remains enabled by default. The UI explains that auth is unavailable on deployments without a hosted backend.
+- Kept guest catalog browsing and cart use unchanged. Password-reset email delivery remains unavailable.
+- Added local OAuth profile configuration and V16 Google identity migration. No database migration was applied.
+
+## Validation
+
+- Frontend lint, TypeScript, and production build passed.
+- Backend suite passed: 43 tests, 0 failures, 0 errors, 0 skipped. This includes cookie auth, OAuth-enabled context startup, and catalog tests.
+- Production-mode browser preview on localhost confirmed auth is disabled when the backend is not hosted, Google sign-in is disabled, and email sign-in displays an explicit unavailable message without making a localhost API request.
+- No actual Google OAuth sign-in, private credential access, database migration, backend hosting, or production auth was performed.

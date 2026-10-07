@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef, useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { authService } from '@/lib/services/authService';
 import { useStore } from '@/lib/store';
 import { gsap } from 'gsap';
 
@@ -23,12 +24,33 @@ export default function Header() {
   const mounted = useHasMounted();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [signOutError, setSignOutError] = useState('');
+  const [signingOut, setSigningOut] = useState(false);
   const cartCount = useStore((s) => s.cartCount());
   const wishlist = useStore((s) => s.wishlist);
   const setCartOpen = useStore((s) => s.setCartOpen);
+  const auth = useStore((s) => s.auth);
+  const logout = useStore((s) => s.logout);
   const headerRef = useRef<HTMLElement>(null);
+
+  const handleLogout = async () => {
+    setSigningOut(true);
+    setSignOutError('');
+    try {
+      await authService.logout();
+      logout();
+      setAccountMenuOpen(false);
+      setMenuOpen(false);
+      router.replace('/');
+    } catch (error) {
+      setSignOutError(error instanceof Error ? error.message : 'Unable to sign out. Please try again.');
+    } finally {
+      setSigningOut(false);
+    }
+  };
 
   useEffect(() => {
     gsap.fromTo(headerRef.current, { y: -80, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: 'power3.out', delay: 0.2 });
@@ -183,11 +205,46 @@ export default function Header() {
             </button>
 
             {/* Account — desktop only */}
-            <Link href="/account" style={{ color: 'var(--color-espresso)', padding: '0.4rem', display: 'flex', alignItems: 'center' }} aria-label="Account" className="desktop-nav">
-              <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
-                <circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" strokeLinecap="round" />
-              </svg>
-            </Link>
+            <div className="desktop-nav" style={{ position: 'relative' }}>
+              {auth.isAuthenticated && auth.user ? (
+                <>
+                  <button
+                    type="button"
+                    className="header-user-button"
+                    onClick={() => setAccountMenuOpen((open) => !open)}
+                    aria-expanded={accountMenuOpen}
+                    aria-label={`Account menu for ${auth.user.name}`}
+                  >
+                    <span className="header-user-avatar">{auth.user.name.charAt(0).toUpperCase()}</span>
+                    <span className="header-user-name">{auth.user.firstName || auth.user.name.split(' ')[0]}</span>
+                    <span aria-hidden="true">⌄</span>
+                  </button>
+                  {accountMenuOpen && (
+                    <div className="header-account-menu">
+                      <p className="header-account-menu-user">{auth.user.name}</p>
+                      <Link href="/account" onClick={() => setAccountMenuOpen(false)}>My Account</Link>
+                      <Link href="/account#orders" onClick={() => setAccountMenuOpen(false)}>Orders</Link>
+                      <Link href="/wishlist" onClick={() => setAccountMenuOpen(false)}>Wishlist</Link>
+                      <button
+                        type="button"
+                        onClick={() => void handleLogout()}
+                        disabled={signingOut}
+                      >
+                        {signingOut ? 'Signing out…' : 'Sign Out'}
+                      </button>
+                      {signOutError && <p className="auth-form-error" role="alert">{signOutError}</p>}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <Link href="/account" className="header-account-link" aria-label="Account">
+                  <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                    <circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" strokeLinecap="round" />
+                  </svg>
+                  <span>Account</span>
+                </Link>
+              )}
+            </div>
 
             {/* Wishlist — desktop only */}
             <Link href="/wishlist" style={{ position: 'relative', color: 'var(--color-espresso)', padding: '0.4rem', display: 'flex', alignItems: 'center' }} aria-label="Wishlist" className="desktop-nav">
@@ -335,9 +392,31 @@ export default function Header() {
             </nav>
 
             <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              <Link href="/account" onClick={() => setMenuOpen(false)} className="btn-outline" style={{ justifyContent: 'center' }}>
-                My Account
-              </Link>
+              {auth.isAuthenticated && auth.user ? (
+                <>
+                  <p className="mobile-account-greeting">Signed in as <strong>{auth.user.name}</strong></p>
+                  <Link href="/account" onClick={() => setMenuOpen(false)} className="btn-outline" style={{ justifyContent: 'center' }}>
+                    My Account
+                  </Link>
+                  <Link href="/account#orders" onClick={() => setMenuOpen(false)} className="btn-outline" style={{ justifyContent: 'center' }}>
+                    Orders
+                  </Link>
+                  <button
+                    type="button"
+                    className="btn-outline"
+                    style={{ justifyContent: 'center' }}
+                    onClick={() => void handleLogout()}
+                    disabled={signingOut}
+                  >
+                    {signingOut ? 'Signing out…' : 'Sign Out'}
+                  </button>
+                  {signOutError && <p className="auth-form-error" role="alert">{signOutError}</p>}
+                </>
+              ) : (
+                <Link href="/account" onClick={() => setMenuOpen(false)} className="btn-outline" style={{ justifyContent: 'center' }}>
+                  Account
+                </Link>
+              )}
               <Link href="/wishlist" onClick={() => setMenuOpen(false)} className="btn-secondary" style={{ justifyContent: 'center' }}>
                 Wishlist ({mounted ? wishlist.length : 0})
               </Link>

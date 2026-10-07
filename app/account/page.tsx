@@ -1,7 +1,11 @@
 'use client';
+import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useStore } from '@/lib/store';
+import { authService } from '@/lib/services/authService';
 import { products } from '@/data/products';
+import AuthGuard from '@/components/auth/AuthGuard';
 
 const mockOrders = [
   { id: 'SM20260912', date: 'Sep 12, 2026', items: ['Willow Tortoise', 'Focus Pro'], total: 7499, status: 'Delivered' },
@@ -14,9 +18,29 @@ const mockPrescriptions = [
   { name: 'Old Prescription – Jan 2026', date: 'Jan 15, 2026', preview: 'R: -1.75 / L: -1.50' },
 ];
 
-export default function AccountPage() {
-  const { wishlist } = useStore();
+function AccountContent() {
+  const router = useRouter();
+  const wishlist = useStore((state) => state.wishlist);
+  const user = useStore((state) => state.auth.user);
+  const logout = useStore((state) => state.logout);
+  const [signOutError, setSignOutError] = useState('');
+  const [signingOut, setSigningOut] = useState(false);
   const wishlisted = products.filter((p) => wishlist.includes(p.id)).slice(0, 4);
+  const initials = user?.name.split(/\s+/).map((part) => part[0]).slice(0, 2).join('').toUpperCase() || 'SM';
+
+  const handleSignOut = async () => {
+    setSigningOut(true);
+    setSignOutError('');
+    try {
+      await authService.logout();
+      logout();
+      router.replace('/');
+    } catch (error) {
+      setSignOutError(error instanceof Error ? error.message : 'Unable to sign out. Please try again.');
+    } finally {
+      setSigningOut(false);
+    }
+  };
 
   return (
     <div style={{ background: 'var(--color-ivory)', minHeight: '100vh', paddingBottom: '4rem' }}>
@@ -29,10 +53,10 @@ export default function AccountPage() {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: '2rem', fontWeight: 700, color: 'white',
             fontFamily: "'Cormorant Garamond', serif",
-          }}>S</div>
+          }}>{initials}</div>
           <div>
-            <h2 style={{ color: 'white', fontSize: '1.75rem', marginBottom: '0.25rem' }}>Samruddhi Patil</h2>
-            <p style={{ color: 'rgba(255,255,255,0.6)', marginBottom: '0.5rem' }}>samruddhi@styleme.in</p>
+            <h2 style={{ color: 'white', fontSize: '1.75rem', marginBottom: '0.25rem' }}>{user?.name}</h2>
+            <p style={{ color: 'rgba(255,255,255,0.6)', marginBottom: '0.5rem' }}>{user?.email}</p>
             <span className="badge" style={{ background: 'rgba(198,106,85,0.3)', color: 'var(--color-terracotta)', border: '1px solid rgba(198,106,85,0.4)' }}>
               ✦ StyleMe Premium Member
             </span>
@@ -78,7 +102,7 @@ export default function AccountPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
 
           {/* Orders */}
-          <div>
+          <div id="orders">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
               <h3 style={{ fontFamily: 'Inter, sans-serif', fontSize: '1.1rem', fontWeight: 700, color: 'var(--color-plum)' }}>Recent Orders</h3>
             </div>
@@ -163,6 +187,22 @@ export default function AccountPage() {
           )}
         </div>
       </div>
+      <div className="container" style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '1rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.5rem' }}>
+          {signOutError && <p className="auth-form-error" role="alert">{signOutError}</p>}
+          <button type="button" className="btn-outline" onClick={() => void handleSignOut()} disabled={signingOut}>
+            {signingOut ? 'Signing out…' : 'Sign Out'}
+          </button>
+        </div>
+      </div>
     </div>
+  );
+}
+
+export default function AccountPage() {
+  return (
+    <AuthGuard redirectTo="/account">
+      <AccountContent />
+    </AuthGuard>
   );
 }
