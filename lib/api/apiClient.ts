@@ -24,6 +24,8 @@ export const isAuthApiEnabled = (): boolean =>
   process.env.NEXT_PUBLIC_AUTH_ENABLED === 'true'
   || (process.env.NEXT_PUBLIC_AUTH_ENABLED !== 'false' && process.env.NODE_ENV !== 'production');
 
+const isCsrfProtectionEnabled = (): boolean => process.env.NEXT_PUBLIC_CSRF_ENABLED === 'true';
+
 export const buildApiUrl = (path: string): string => {
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
   return `${getApiBaseUrl()}${normalizedPath}`;
@@ -44,6 +46,12 @@ export async function apiRequest<T>(
 
   if (!(options.body instanceof FormData) && options.body !== undefined && !headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json');
+  }
+
+  const method = (options.method ?? 'GET').toUpperCase();
+  if (isCsrfProtectionEnabled() && !['GET', 'HEAD', 'OPTIONS', 'TRACE'].includes(method)) {
+    const csrf = await apiRequest<{ headerName: string; token: string }>('/api/v1/auth/csrf');
+    headers.set(csrf.headerName, csrf.token);
   }
 
   const response = await fetch(buildApiUrl(path), {

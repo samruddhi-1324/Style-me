@@ -17,7 +17,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -75,5 +78,14 @@ public class AuthController {
             @AuthenticationPrincipal UserPrincipal principal) {
         UserResponse userResponse = principal == null ? null : userService.getUserById(principal.getId());
         return ResponseEntity.ok(ApiResponse.success("Authentication session checked", userResponse));
+    }
+
+    @GetMapping("/csrf")
+    @Operation(summary = "Get a CSRF token for browser requests")
+    public ResponseEntity<ApiResponse<Map<String, String>>> getCsrfToken(CsrfToken csrfToken) {
+        return ResponseEntity.ok(ApiResponse.success("CSRF token retrieved", Map.of(
+                "headerName", csrfToken.getHeaderName(),
+                "token", csrfToken.getToken()
+        )));
     }
 }

@@ -10,7 +10,6 @@ import com.styleme.user.entity.RoleEnum;
 import com.styleme.user.entity.User;
 import com.styleme.user.repository.RoleRepository;
 import com.styleme.user.repository.UserRepository;
-import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import jakarta.servlet.http.Cookie;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -74,6 +74,7 @@ class AuthControllerSecurityTests {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.accessToken").doesNotExist())
                 .andExpect(jsonPath("$.data.email").value("john@example.com"))
                 .andExpect(jsonPath("$.data.firstName").value("John"))
                 .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers
@@ -109,6 +110,7 @@ class AuthControllerSecurityTests {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.accessToken").doesNotExist())
                 .andExpect(jsonPath("$.data.email").value("sarah@example.com"))
                 .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers
                         .header().string("Set-Cookie", org.hamcrest.Matchers.containsString("HttpOnly")));

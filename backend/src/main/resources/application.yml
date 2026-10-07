@@ -56,3 +56,12 @@ app:
   jwt:
     secret: ${JWT_SECRET:default-insecure-dev-secret-key-styleme-phase1-minimum-256-bits-length!}
     expiration-ms: ${JWT_EXPIRATION_MS:86400000}
+
+styleme:
+  pricing:
+    # GST tax rate applied on discounted subtotal (default 18%)
+    tax-rate: ${PRICING_TAX_RATE:0.18}
+    # Flat shipping charge when below free-shipping threshold
+    shipping-charge: ${PRICING_SHIPPING_CHARGE:99.00}
+    # Subtotals >= this amount qualify for free shipping
+    free-shipping-threshold: ${PRICING_FREE_SHIPPING_THRESHOLD:999.00}

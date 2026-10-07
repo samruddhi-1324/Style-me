@@ -814,3 +814,30 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Backend suite passed: 43 tests, 0 failures, 0 errors, 0 skipped. This includes cookie auth, OAuth-enabled context startup, and catalog tests.
 - Production-mode browser preview on localhost confirmed auth is disabled when the backend is not hosted, Google sign-in is disabled, and email sign-in displays an explicit unavailable message without making a localhost API request.
 - No actual Google OAuth sign-in, private credential access, database migration, backend hosting, or production auth was performed.
+
+---
+
+# RENDER BACKEND HOSTING PREPARATION
+
+**Date:** 2026-10-07
+**Status:** PREPARED; NOT DEPLOYED
+**Private credentials accessed:** NO
+
+## Changes
+
+- Added a Render Blueprint for the Dockerized Spring Boot backend on the free plan.
+- Added a Java 21 multi-stage backend Dockerfile and production OAuth, Secure/SameSite=None cookie, CSRF, CORS, health-check, and container logging configuration.
+- Added a CSRF bootstrap endpoint and browser preflight support for `X-XSRF-TOKEN`; unsafe browser requests now require a valid cookie/header token when CSRF is enabled.
+- Documented Render/Vercel environment wiring and the Google OAuth callback URI.
+
+## Validation
+
+- Backend regression suite: 106 tests passed.
+- Frontend lint, TypeScript check, and production build: PASS.
+- Docker image build was not run because the local Docker daemon is unavailable.
+- No Render service was created, no OAuth sign-in was performed, and no Supabase migration was run.
+
+## Deployment Gate
+
+- The production backend runs Flyway at startup. V16 adds the Google OAuth identity column/index and remains pending on Supabase.
+- Do not deploy the backend against Supabase until V16 has been reviewed and explicitly approved.

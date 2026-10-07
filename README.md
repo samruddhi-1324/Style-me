@@ -63,22 +63,32 @@ npm run start
 
 ## Deployment
 
-This frontend is designed for seamless deployment on **Vercel**:
+The storefront is deployed on **Vercel**. The Spring Boot API can be hosted on **Render** using the root `render.yaml` blueprint and `backend/Dockerfile`.
 
-1. Push your repository to **GitHub**.
-2. Go to [Vercel Dashboard](https://vercel.com) and click **"Add New Project"**.
-3. Import the `styleme` repository.
-4. Framework Preset will automatically be detected as **Next.js**.
-5. Build Command: `npm run build`
-6. Output Directory: Next.js default (`.next`)
-7. Click **"Deploy"**.
+Before connecting the Render service to Supabase, review pending Flyway migrations. The first production startup runs Flyway and may modify the database; do not start it until the pending migration has been reviewed and approved.
+
+Configure these frontend environment variables in Vercel after the backend is deployed:
+
+```text
+NEXT_PUBLIC_API_URL=https://<render-service-host>
+NEXT_PUBLIC_AUTH_ENABLED=true
+NEXT_PUBLIC_CSRF_ENABLED=true
+```
+
+Set the Google OAuth authorized redirect URI to:
+
+```text
+https://<render-service-host>/login/oauth2/code/google
+```
+
+Set backend secrets and the Supabase JDBC URL in the Render service environment, not in source control. The Render free plan can spin down when idle.
 
 ## Environment Variables
 
-This is a self-contained frontend application with mock product data and client-side state.
-**No private API keys or backend environment variables are required.**
-
-An example file is provided at `.env.example`:
+Frontend environment variable placeholders are provided in `.env.example`:
 ```bash
-NEXT_PUBLIC_SITE_URL=https://styleme-eyewear.vercel.app
+NEXT_PUBLIC_API_URL=http://localhost:8080
+NEXT_PUBLIC_AUTH_ENABLED=true
+NEXT_PUBLIC_CSRF_ENABLED=false
+NEXT_PUBLIC_SITE_URL=https://style-me-iota.vercel.app
 ```

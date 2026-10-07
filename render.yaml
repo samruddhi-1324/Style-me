@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: styleme-backend
+    runtime: docker
+    plan: free
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://style-me-iota.vercel.app
+      - key: FRONTEND_URL
+        value: https://style-me-iota.vercel.app
+      - key: GOOGLE_OAUTH_ENABLED
+        value: "true"
+      - key: CSRF_ENABLED
+        value: "true"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: SUPABASE_DATABASE_URL
+        sync: false
+      - key: SUPABASE_DATABASE_USERNAME
+        sync: false
+      - key: SUPABASE_DATABASE_PASSWORD
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false

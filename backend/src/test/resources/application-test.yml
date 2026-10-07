@@ -14,6 +14,10 @@ spring:
     properties:
       hibernate:
         globally_quoted_identifiers: false
+    defer-datasource-initialization: true
+  sql:
+    init:
+      mode: always
   flyway:
     enabled: false
 
