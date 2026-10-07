@@ -4,9 +4,11 @@ import com.styleme.auth.security.CustomAccessDeniedHandler;
 import com.styleme.auth.security.GoogleOAuth2AuthenticationHandler;
 import com.styleme.auth.security.JwtAuthenticationEntryPoint;
 import com.styleme.auth.security.JwtAuthenticationFilter;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -18,6 +20,9 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -32,6 +37,7 @@ public class SecurityConfig {
     private final CustomAccessDeniedHandler accessDeniedHandler;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final GoogleOAuth2AuthenticationHandler googleOAuth2AuthenticationHandler;
+    private final ObjectProvider<OAuth2AuthorizationRequestResolver> authorizationRequestResolverProvider;
     private final boolean googleOAuthEnabled;
     private final boolean csrfEnabled;
     private final boolean secureCookiesEnabled;
@@ -42,6 +48,7 @@ public class SecurityConfig {
                           CustomAccessDeniedHandler accessDeniedHandler,
                           JwtAuthenticationFilter jwtAuthenticationFilter,
                           GoogleOAuth2AuthenticationHandler googleOAuth2AuthenticationHandler,
+                          ObjectProvider<OAuth2AuthorizationRequestResolver> authorizationRequestResolverProvider,
                           @Value("${app.oauth2.google.enabled:false}") boolean googleOAuthEnabled,
                           @Value("${app.security.csrf-enabled:false}") boolean csrfEnabled,
                           @Value("${app.auth-cookie.secure:false}") boolean secureCookiesEnabled,
@@ -51,6 +58,7 @@ public class SecurityConfig {
         this.accessDeniedHandler = accessDeniedHandler;
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.googleOAuth2AuthenticationHandler = googleOAuth2AuthenticationHandler;
+        this.authorizationRequestResolverProvider = authorizationRequestResolverProvider;
         this.googleOAuthEnabled = googleOAuthEnabled;
         this.csrfEnabled = csrfEnabled;
         this.secureCookiesEnabled = secureCookiesEnabled;
@@ -118,6 +126,8 @@ public class SecurityConfig {
 
         if (googleOAuthEnabled) {
             http.oauth2Login(oauth2 -> oauth2
+                    .authorizationEndpoint(authorization -> authorization
+                            .authorizationRequestResolver(authorizationRequestResolverProvider.getObject()))
                     .successHandler(googleOAuth2AuthenticationHandler)
                     .failureHandler(googleOAuth2AuthenticationHandler));
         }
@@ -125,6 +135,18 @@ public class SecurityConfig {
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    @Bean
+    @ConditionalOnProperty(prefix = "app.oauth2.google", name = "enabled", havingValue = "true")
+    public OAuth2AuthorizationRequestResolver googleOAuth2AuthorizationRequestResolver(
+            ClientRegistrationRepository clientRegistrationRepository) {
+        DefaultOAuth2AuthorizationRequestResolver resolver =
+                new DefaultOAuth2AuthorizationRequestResolver(
+                        clientRegistrationRepository, "/oauth2/authorization");
+        resolver.setAuthorizationRequestCustomizer(request ->
+                request.additionalParameters(parameters -> parameters.put("prompt", "select_account")));
+        return resolver;
     }
 
     private CsrfTokenRepository csrfTokenRepository() {

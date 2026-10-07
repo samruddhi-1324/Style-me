@@ -85,10 +85,25 @@ Set backend secrets and the Supabase JDBC URL in the Render service environment,
 
 ## Environment Variables
 
-Frontend environment variable placeholders are provided in `.env.example`:
-```bash
-NEXT_PUBLIC_API_URL=http://localhost:8080
-NEXT_PUBLIC_AUTH_ENABLED=true
-NEXT_PUBLIC_CSRF_ENABLED=false
-NEXT_PUBLIC_SITE_URL=https://style-me-iota.vercel.app
+The local frontend settings are in `.env.local` (ignored by Git). The public API URL points to the local Spring Boot backend.
+
+Google OAuth client credentials and database passwords must stay in the backend's private `.env` file. Never add secrets to frontend environment variables or any variable prefixed with `NEXT_PUBLIC_`.
+
+Start the frontend from this directory with `npm run dev`. In a second terminal, start the backend from the sibling `backend` directory with `mvn spring-boot:run`. The backend defaults to the H2 `local` profile and reads OAuth values from `backend/.env`; this local profile does not run Flyway migrations.
+
+Put these keys in `backend/.env` with your own Google OAuth values:
+
+```text
+GOOGLE_OAUTH_ENABLED=true
+GOOGLE_CLIENT_ID=your-client-id
+GOOGLE_CLIENT_SECRET=your-client-secret
+FRONTEND_URL=http://localhost:3000
+```
+
+The frontend `.env.local` is already configured for localhost and must contain no secrets. If `backend/.env` sets `SPRING_PROFILES_ACTIVE=local-postgres`, remove or comment out that setting for the safe H2 local test; the PostgreSQL profile may run database migrations.
+
+For local Google OAuth, configure the Google OAuth client with this authorized redirect URI:
+
+```text
+http://localhost:8080/login/oauth2/code/google
 ```

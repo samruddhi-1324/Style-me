@@ -6,6 +6,7 @@ import { useStore } from '@/lib/store';
 import { authService } from '@/lib/services/authService';
 import { products } from '@/data/products';
 import AuthGuard from '@/components/auth/AuthGuard';
+import AccountSettings from '@/components/account/AccountSettings';
 
 const mockOrders = [
   { id: 'SM20260912', date: 'Sep 12, 2026', items: ['Willow Tortoise', 'Focus Pro'], total: 7499, status: 'Delivered' },
@@ -45,7 +46,7 @@ function AccountContent() {
   return (
     <div style={{ background: 'var(--color-ivory)', minHeight: '100vh', paddingBottom: '4rem' }}>
       {/* Hero */}
-      <div style={{ background: 'linear-gradient(135deg, var(--color-plum), #3D1F42)', padding: '3rem 0' }}>
+      <div id="profile" className="account-section" style={{ background: 'linear-gradient(135deg, var(--color-plum), #3D1F42)', padding: '3rem 0' }}>
         <div className="container" style={{ display: 'flex', alignItems: 'center', gap: '2rem', flexWrap: 'wrap' }}>
           <div style={{
             width: '80px', height: '80px', borderRadius: '50%',
@@ -75,26 +76,19 @@ function AccountContent() {
       <div className="container account-layout" style={{ paddingTop: '2.5rem', display: 'grid', gridTemplateColumns: '200px 1fr', gap: '3rem', alignItems: 'flex-start' }}>
 
         {/* Sidebar nav */}
-        <nav className="account-sidebar" style={{ background: 'white', borderRadius: 'var(--radius-lg)', padding: '1.25rem', border: '1px solid rgba(0,0,0,0.06)', position: 'sticky', top: '100px' }}>
+        <nav aria-label="Account sections" className="account-sidebar" style={{ background: 'white', borderRadius: 'var(--radius-lg)', padding: '1.25rem', border: '1px solid rgba(0,0,0,0.06)', position: 'sticky', top: '100px' }}>
           {[
-            ['👤', 'Profile'],
-            ['📦', 'Orders'],
-            ['📋', 'Prescriptions'],
-            ['❤️', 'Wishlist'],
-            ['📍', 'Addresses'],
-            ['⚙️', 'Preferences'],
-          ].map(([icon, label]) => (
-            <div key={label} style={{
-              display: 'flex', alignItems: 'center', gap: '0.75rem',
-              padding: '0.75rem 0.875rem', borderRadius: '10px', cursor: 'pointer',
-              color: label === 'Orders' ? 'var(--color-forest)' : 'var(--color-espresso)',
-              background: label === 'Orders' ? 'rgba(32,56,46,0.08)' : 'transparent',
-              fontWeight: label === 'Orders' ? 700 : 400,
-              fontSize: '0.875rem', transition: 'all 0.2s', marginBottom: '0.25rem',
-            }}>
+            ['👤', 'Profile', '#profile'],
+            ['📦', 'Orders', '#orders'],
+            ['📋', 'Prescriptions', '#prescriptions'],
+            ['❤️', 'Wishlist', '#wishlist'],
+            ['📍', 'Addresses', '#addresses'],
+            ['⚙️', 'Preferences', '#preferences'],
+          ].map(([icon, label, href]) => (
+            <a key={label} className="account-sidebar-link" href={href}>
               <span>{icon}</span>
               {label}
-            </div>
+            </a>
           ))}
         </nav>
 
@@ -135,7 +129,7 @@ function AccountContent() {
           </div>
 
           {/* Prescriptions */}
-          <div>
+          <div id="prescriptions" className="account-section">
             <h3 style={{ fontFamily: 'Inter, sans-serif', fontSize: '1.1rem', fontWeight: 700, color: 'var(--color-plum)', marginBottom: '1.25rem' }}>Saved Prescriptions</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
               {mockPrescriptions.map((rx) => (
@@ -155,13 +149,12 @@ function AccountContent() {
           </div>
 
           {/* Wishlist preview */}
-          {wishlisted.length > 0 && (
-            <div>
+          <div id="wishlist" className="account-section">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
                 <h3 style={{ fontFamily: 'Inter, sans-serif', fontSize: '1.1rem', fontWeight: 700, color: 'var(--color-plum)' }}>Saved Frames</h3>
                 <Link href="/wishlist" style={{ fontSize: '0.85rem', color: 'var(--color-terracotta)', fontWeight: 600 }}>View all →</Link>
               </div>
-              <div className="account-wishlist-grid grid-4" style={{ gap: '1rem' }}>
+              {wishlisted.length > 0 ? <div className="account-wishlist-grid grid-4" style={{ gap: '1rem' }}>
                 {wishlisted.map((p) => (
                   <Link key={p.id} href={`/product/${p.id}`} style={{
                     background: 'white', borderRadius: 'var(--radius-md)', padding: '1rem',
@@ -182,9 +175,10 @@ function AccountContent() {
                     <p style={{ fontSize: '0.72rem', color: 'var(--color-terracotta)', fontWeight: 700 }}>₹{p.price.toLocaleString('en-IN')}</p>
                   </Link>
                 ))}
-              </div>
-            </div>
-          )}
+              </div> : <p className="account-empty-state">You haven’t saved any frames yet. Browse the collection and add your favorites to your wishlist.</p>}
+          </div>
+
+          <AccountSettings />
         </div>
       </div>
       <div className="container" style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '1rem' }}>
