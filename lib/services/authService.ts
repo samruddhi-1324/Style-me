@@ -24,6 +24,7 @@ function toAuthUser(user: ApiUser): AuthUser {
     email: user.email,
     firstName: firstName || undefined,
     lastName: lastName || undefined,
+    roles: user.roles,
   };
 }
 

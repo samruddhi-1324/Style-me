@@ -356,3 +356,40 @@ d:\Style me\styleme\
 - Virtual Try-On uses calibrated preset positioning (`top: 29%`) — NOT real facial landmark detection (MediaPipe/WebGL)
 - Order history in Account is hardcoded mock data
 - frame-025 and frame-026 share overlay PNGs from frame-012 and frame-009 respectively (transparent overlays not individually generated yet)
+
+---
+
+# CURRENT UPDATE — ACCOUNT SETTINGS AND HOSTED FRONTEND
+
+**Date:** 2026-10-08
+**Status:** FRONTEND DEPLOYED; PRODUCTION BACKEND PENDING
+
+This update supplements the earlier prototype history above; that history is not a description of the current integration state.
+
+## Completed
+
+- Google OAuth uses `prompt=select_account` to request Google's account chooser on each sign-in attempt.
+- The account page includes backend-backed address CRUD/default selection and marketing email preference settings.
+- The Google sign-in button has branded styling and a multicolor Google icon.
+- Commit `a64fb43` was pushed to GitHub `main`, and the Vercel deployment at `https://style-me-iota.vercel.app` succeeded.
+- Frontend lint/build and focused OAuth/customer service tests passed.
+
+## Pending
+
+- Vercel authentication remains disabled/unavailable until a public backend is hosted and production settings are configured.
+- The user will deploy the backend to Render. Do not create or deploy that service on the user's behalf.
+- Production Google OAuth callback/session behavior has not been verified; the user must complete Google's sign-in step.
+- After Render deployment, configure and verify the Vercel API/auth settings, Google callback URI, CORS, CSRF, and secure session cookies.
+- Review and explicitly approve Flyway migration V16 before production deployment against Supabase.
+
+---
+
+# ADMIN DASHBOARD UI
+
+**Date:** 2026-10-08
+**Status:** IMPLEMENTED
+
+- Added `/admin` with live overview metrics plus Users and Audit Log views backed by the secured backend endpoints.
+- Restricted the dashboard UI to administrator roles; backend RBAC continues to enforce access independently.
+- Added responsive layout and loading, error, empty, and unauthorized states.
+- Validation passed: ESLint, TypeScript, production build (including `/admin` route), and whitespace check.

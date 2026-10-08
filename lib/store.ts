@@ -27,6 +27,7 @@ export interface AuthUser {
   email: string;
   firstName?: string;
   lastName?: string;
+  roles?: string[];
 }
 
 export type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated' | 'error';

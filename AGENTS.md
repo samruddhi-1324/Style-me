@@ -841,3 +841,41 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 - The production backend runs Flyway at startup. V16 adds the Google OAuth identity column/index and remains pending on Supabase.
 - Do not deploy the backend against Supabase until V16 has been reviewed and explicitly approved.
+
+---
+
+# FRONTEND RELEASE AND ACCOUNT SETTINGS STATUS
+
+**Date:** 2026-10-08
+**Status:** DEPLOYED TO VERCEL; BACKEND HOSTING PENDING
+**Private credentials accessed:** NO
+
+## Completed
+
+- Commit `a64fb43` (`Add functional account settings and Google account selection`) is on GitHub `main`; the associated Vercel deployment succeeded at `https://style-me-iota.vercel.app`.
+- Google OAuth requests `prompt=select_account` to request the Google account chooser on each sign-in attempt.
+- The Google sign-in button has branded styling and a multicolor Google icon.
+- The account page's Addresses and Preferences sections call backend customer APIs for address management and marketing opt-in.
+- Frontend lint/build and the focused OAuth and customer service tests passed.
+
+## Not Yet Verified in Production
+
+- Google sign-in remains unavailable in Vercel until the public backend URL and production auth configuration are set.
+- The user will deploy the backend to Render. Do not create or deploy the Render service on the user's behalf.
+- No real Google OAuth callback/session round trip has been completed; the user must authenticate personally with Google.
+- After Render deployment, configure Vercel API/auth variables, the backend's CORS/CSRF/secure cookie settings, and Google's authorized redirect URI; then verify the full browser flow.
+- Review and explicitly approve Flyway migration V16 before production deployment against Supabase. Never read or publish private `.env` values.
+
+---
+
+# ADMIN DASHBOARD UI
+
+**Date:** 2026-10-08
+**Status:** IMPLEMENTED AND BUILD-VERIFIED
+
+- Added the `/admin` frontend route with Overview, Users, and Audit Log sections.
+- Connected dashboard metrics, user directory, and recent audit events to the existing protected `/api/v1/admin` backend endpoints.
+- Added role-aware UI gating for `ROLE_ADMIN` and `ROLE_SUPER_ADMIN`, with unauthenticated users redirected to sign-in and non-admins shown an access-denied screen. Backend authorization remains authoritative.
+- Added responsive dashboard styling and explicit loading/error/empty states.
+- Added the frontend admin API service and retained session roles in the auth state.
+- Validation: frontend ESLint, TypeScript check, production build, and `git diff --check` passed.
