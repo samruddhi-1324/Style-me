@@ -393,3 +393,7 @@ This update supplements the earlier prototype history above; that history is not
 - Restricted the dashboard UI to administrator roles; backend RBAC continues to enforce access independently.
 - Added responsive layout and loading, error, empty, and unauthorized states.
 - Validation passed: ESLint, TypeScript, production build (including `/admin` route), and whitespace check.
+- Added role-aware desktop/mobile account-menu links to make the dashboard discoverable after an administrator signs in. Signed-out and non-admin users remain gated.
+- Added an opt-in local-profile-only admin role bootstrap for the configured email in ignored `backend/application-local-admin.yml`. Successful local sign-in/registration is required; production profiles cannot apply this promotion.
+- Local H2 is in-memory, so restarting the backend clears local accounts. The account must be registered again if it no longer exists.
+- Targeted backend auth/bootstrap tests, frontend lint, and TypeScript passed.

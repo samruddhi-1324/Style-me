@@ -879,3 +879,12 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Added responsive dashboard styling and explicit loading/error/empty states.
 - Added the frontend admin API service and retained session roles in the auth state.
 - Validation: frontend ESLint, TypeScript check, production build, and `git diff --check` passed.
+
+## Local Dashboard Discovery
+
+- Added an Admin dashboard link to both desktop and mobile account menus when the signed-in session carries `ADMIN` or `SUPER_ADMIN` role.
+- The `/admin` route still redirects signed-out visitors to login and denies non-admin users; backend RBAC remains authoritative.
+- A local browser without a session will show the login page at `http://localhost:3000/admin`; this is expected.
+- Added opt-in local-profile-only role bootstrap via the ignored `backend/application-local-admin.yml`. It grants `ROLE_ADMIN` only to the configured email after successful local email/Google login or registration; that email is not in tracked files or `.env`.
+- Restarting the local H2 backend clears its in-memory accounts; register the configured email again if its account is no longer present.
+- Validation: targeted backend auth/bootstrap tests passed; frontend lint and TypeScript passed.

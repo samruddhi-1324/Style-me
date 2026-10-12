@@ -102,6 +102,8 @@ FRONTEND_URL=http://localhost:3000
 
 The frontend `.env.local` is already configured for localhost and must contain no secrets. If `backend/.env` sets `SPRING_PROFILES_ACTIVE=local-postgres`, remove or comment out that setting for the safe H2 local test; the PostgreSQL profile may run database migrations.
 
+For local admin development, the backend supports an opt-in role bootstrap that is restricted to the `local` profile. The ignored `backend/application-local-admin.yml` file can set `styleme.auth.local-admin-email` for the account that should receive `ROLE_ADMIN` after successful sign-in or registration. This file is local-only and must not be committed. The H2 local database is in-memory, so restarting the backend clears local accounts; register the configured account again if it no longer exists.
+
 For local Google OAuth, configure the Google OAuth client with this authorized redirect URI:
 
 ```text

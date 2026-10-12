@@ -34,6 +34,9 @@ export default function Header() {
   const setCartOpen = useStore((s) => s.setCartOpen);
   const auth = useStore((s) => s.auth);
   const logout = useStore((s) => s.logout);
+  const isAdministrator = auth.user?.roles?.some((role) =>
+    ['ADMIN', 'SUPER_ADMIN', 'ROLE_ADMIN', 'ROLE_SUPER_ADMIN'].includes(role)
+  ) ?? false;
   const headerRef = useRef<HTMLElement>(null);
 
   const handleLogout = async () => {
@@ -225,6 +228,7 @@ export default function Header() {
                       <Link href="/account" onClick={() => setAccountMenuOpen(false)}>My Account</Link>
                       <Link href="/account#orders" onClick={() => setAccountMenuOpen(false)}>Orders</Link>
                       <Link href="/wishlist" onClick={() => setAccountMenuOpen(false)}>Wishlist</Link>
+                      {isAdministrator && <Link href="/admin" onClick={() => setAccountMenuOpen(false)}>Admin dashboard</Link>}
                       <button
                         type="button"
                         onClick={() => void handleLogout()}
@@ -401,6 +405,11 @@ export default function Header() {
                   <Link href="/account#orders" onClick={() => setMenuOpen(false)} className="btn-outline" style={{ justifyContent: 'center' }}>
                     Orders
                   </Link>
+                  {isAdministrator && (
+                    <Link href="/admin" onClick={() => setMenuOpen(false)} className="btn-outline" style={{ justifyContent: 'center' }}>
+                      Admin dashboard
+                    </Link>
+                  )}
                   <button
                     type="button"
                     className="btn-outline"

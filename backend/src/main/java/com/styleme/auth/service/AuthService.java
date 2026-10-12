@@ -33,17 +33,20 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider tokenProvider;
+    private final LocalAdminRoleBootstrap localAdminRoleBootstrap;
 
     public AuthService(UserRepository userRepository,
                        RoleRepository roleRepository,
                        PasswordEncoder passwordEncoder,
                        AuthenticationManager authenticationManager,
-                       JwtTokenProvider tokenProvider) {
+                       JwtTokenProvider tokenProvider,
+                       LocalAdminRoleBootstrap localAdminRoleBootstrap) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.tokenProvider = tokenProvider;
+        this.localAdminRoleBootstrap = localAdminRoleBootstrap;
     }
 
     @Transactional
@@ -69,6 +72,7 @@ public class AuthService {
         Role customerRole = roleRepository.findByName(RoleEnum.ROLE_CUSTOMER)
                 .orElseGet(() -> roleRepository.save(new Role(RoleEnum.ROLE_CUSTOMER, "Standard registered customer")));
         user.addRole(customerRole);
+        localAdminRoleBootstrap.grantAdminRoleIfConfigured(user);
 
         User savedUser = userRepository.save(user);
         UserPrincipal userPrincipal = UserPrincipal.create(savedUser);
@@ -77,7 +81,7 @@ public class AuthService {
         return new AuthResponse(jwt, tokenProvider.getExpirationMs(), UserResponse.fromEntity(savedUser));
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public AuthResponse login(LoginRequest request) {
         String normalizedEmail = request.getEmail().trim().toLowerCase();
 
@@ -85,12 +89,13 @@ public class AuthService {
                 new UsernamePasswordAuthenticationToken(normalizedEmail, request.getPassword())
         );
 
-        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
-        String jwt = tokenProvider.generateToken(authentication);
-
         User user = userRepository.findByEmail(normalizedEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + normalizedEmail));
 
+        if (localAdminRoleBootstrap.grantAdminRoleIfConfigured(user)) {
+            user = userRepository.save(user);
+        }
+        String jwt = tokenProvider.generateTokenFromUserPrincipal(UserPrincipal.create(user));
         return new AuthResponse(jwt, tokenProvider.getExpirationMs(), UserResponse.fromEntity(user));
     }
 
@@ -138,6 +143,9 @@ public class AuthService {
             throw googleAuthenticationException("ACCOUNT_DISABLED", "This account is disabled.");
         }
 
+        if (localAdminRoleBootstrap.grantAdminRoleIfConfigured(user)) {
+            user = userRepository.save(user);
+        }
         UserPrincipal principal = UserPrincipal.create(user);
         String jwt = tokenProvider.generateTokenFromUserPrincipal(principal);
         return new AuthResponse(jwt, tokenProvider.getExpirationMs(), UserResponse.fromEntity(user));

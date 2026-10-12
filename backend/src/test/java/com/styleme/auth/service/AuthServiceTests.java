@@ -36,6 +36,7 @@ class AuthServiceTests {
     private PasswordEncoder passwordEncoder;
     private AuthenticationManager authenticationManager;
     private JwtTokenProvider tokenProvider;
+    private LocalAdminRoleBootstrap localAdminRoleBootstrap;
     private AuthService authService;
 
     @BeforeEach
@@ -45,13 +46,15 @@ class AuthServiceTests {
         passwordEncoder = Mockito.mock(PasswordEncoder.class);
         authenticationManager = Mockito.mock(AuthenticationManager.class);
         tokenProvider = Mockito.mock(JwtTokenProvider.class);
+        localAdminRoleBootstrap = Mockito.mock(LocalAdminRoleBootstrap.class);
 
         authService = new AuthService(
                 userRepository,
                 roleRepository,
                 passwordEncoder,
                 authenticationManager,
-                tokenProvider
+                tokenProvider,
+                localAdminRoleBootstrap
         );
     }
 
@@ -107,15 +110,44 @@ class AuthServiceTests {
 
         Authentication auth = new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(auth);
-        when(tokenProvider.generateToken(auth)).thenReturn("mock-login-token");
         when(tokenProvider.getExpirationMs()).thenReturn(86400000L);
         when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(user));
+        when(tokenProvider.generateTokenFromUserPrincipal(any(UserPrincipal.class))).thenReturn("mock-login-token");
 
         AuthResponse response = authService.login(request);
 
         assertNotNull(response);
         assertEquals("mock-login-token", response.getAccessToken());
         assertEquals("user@example.com", response.getUser().getEmail());
+    }
+
+    @Test
+    @DisplayName("local bootstrap role is included in the login response and JWT")
+    void testLoginIncludesBootstrappedAdminRole() {
+        LoginRequest request = new LoginRequest("admin@example.com", "Password123");
+        Role adminRole = new Role(RoleEnum.ROLE_ADMIN, "Local administrator");
+        User user = new User("admin@example.com", "encodedPassword", "Local", "Admin");
+        user.setId(UUID.randomUUID());
+        UserPrincipal authenticatedPrincipal = UserPrincipal.create(user);
+        Authentication auth = new UsernamePasswordAuthenticationToken(
+                authenticatedPrincipal, null, authenticatedPrincipal.getAuthorities());
+
+        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(auth);
+        when(userRepository.findByEmail("admin@example.com")).thenReturn(Optional.of(user));
+        when(localAdminRoleBootstrap.grantAdminRoleIfConfigured(user)).thenAnswer(invocation -> {
+            user.addRole(adminRole);
+            return true;
+        });
+        when(userRepository.save(user)).thenReturn(user);
+        when(tokenProvider.generateTokenFromUserPrincipal(any(UserPrincipal.class))).thenReturn("admin-login-token");
+        when(tokenProvider.getExpirationMs()).thenReturn(86400000L);
+
+        AuthResponse response = authService.login(request);
+
+        assertTrue(response.getUser().getRoles().contains("ROLE_ADMIN"));
+        verify(tokenProvider).generateTokenFromUserPrincipal(argThat(principal ->
+                principal.getAuthorities().stream()
+                        .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"))));
     }
 
     @Test
