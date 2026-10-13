@@ -397,3 +397,67 @@ This update supplements the earlier prototype history above; that history is not
 - Added an opt-in local-profile-only admin role bootstrap for the configured email in ignored `backend/application-local-admin.yml`. Successful local sign-in/registration is required; production profiles cannot apply this promotion.
 - Local H2 is in-memory, so restarting the backend clears local accounts. The account must be registered again if it no longer exists.
 - Targeted backend auth/bootstrap tests, frontend lint, and TypeScript passed.
+
+---
+
+# DEPLOYMENT STRATEGY, RAZORPAY DECISION & RENDER SETUP
+
+**Date:** 2026-10-13
+**Status:** CODE COMMITTED (`fb11f66`) AND PUSHED TO GITHUB; RENDER DEPLOYMENT IN PROGRESS BY USER
+**.env accessed:** NO
+
+## Key Decisions
+
+### 1. Deploy Backend to Render First (Before Phase 6 / Razorpay)
+- Phases 6–8 (Coupons, Orders, Payments) and Razorpay will NOT be developed locally first.
+- Render deployment comes first because Razorpay webhooks require a publicly reachable server URL (`payment.captured` / `order.paid` event callbacks cannot reach `localhost:8080`).
+
+### 2. Payment Gateway: Razorpay Selected
+- Razorpay chosen as the production payment provider.
+- Best fit for Indian market: UPI (Google Pay, PhonePe, Paytm), credit/debit cards, net banking, pay-later natively supported.
+- Current backend has `MockPaymentProvider.java`. Razorpay SDK integration will replace it in Step 3.
+
+## Git Commit: fb11f66
+
+- **Message:** "Configure local admin role bootstrap and header navigation"
+- **Pushed to:** `origin/main` (`https://github.com/samruddhi-1324/Style-me`)
+- **Validation:**
+  - Next.js production build: PASS — 18/18 pages, 0 TypeScript errors
+  - Maven `test-compile`: BUILD SUCCESS — Java 21, Maven 3.10
+  - Gitignored files (`.env`, `application-local-admin.yml`, `.env.local`, `target/`, `node_modules/`) NOT committed
+
+## Render Web Service Configuration
+
+- **Runtime:** Docker | **Dockerfile:** `./backend/Dockerfile` | **Context:** `./backend`
+- **Health Check:** `/actuator/health` | **Plan:** Free
+
+### Environment Variables Set on Render
+
+| Variable | Status |
+|---|---|
+| `SPRING_PROFILES_ACTIVE` | `prod` ✅ |
+| `CORS_ALLOWED_ORIGINS` | `https://style-me-iota.vercel.app` ✅ |
+| `FRONTEND_URL` | `https://style-me-iota.vercel.app` ✅ |
+| `GOOGLE_OAUTH_ENABLED` | `true` ✅ |
+| `CSRF_ENABLED` | `true` ✅ |
+| `JWT_SECRET` | 64-char secure random key ✅ |
+| `SUPABASE_DATABASE_URL` | ⚠️ Needs real JDBC URL: `jdbc:postgresql://db.<ref>.supabase.co:5432/postgres?sslmode=require` |
+| `SUPABASE_DATABASE_USERNAME` | `postgres` ✅ |
+| `SUPABASE_DATABASE_PASSWORD` | Set in Render (not committed) ✅ |
+| `GOOGLE_CLIENT_ID` | Set in Render (not committed) ✅ |
+| `GOOGLE_CLIENT_SECRET` | Set in Render (not committed) ✅ |
+
+## Next Session — Step 2: Connect Vercel to Render
+
+**Start with:** "Render URL is: https://your-backend.onrender.com — proceed with step 2"
+
+Step 2 tasks:
+1. Add `NEXT_PUBLIC_API_URL=https://<render-url>.onrender.com` to Vercel environment variables.
+2. Add `https://<render-url>.onrender.com/login/oauth2/code/google` to Google Cloud Console authorized redirect URIs.
+3. Verify CORS, CSRF, and secure cookie (`SameSite=None; Secure`) configuration in production.
+4. Test production Google OAuth end-to-end on `https://style-me-iota.vercel.app`.
+5. Confirm Flyway migrations V1–V16 ran successfully against Supabase (check Render deploy logs).
+6. Verify `/actuator/health` returns `{"status":"UP"}` from Render URL.
+
+Step 3 (after Step 2): Razorpay integration — backend provider + frontend checkout modal.
+
